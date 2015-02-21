@@ -1,0 +1,9 @@
+<phpunit bootstrap="./bootstrap.php" backupGlobals="false" backupStaticAttributes="false" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" stopOnError="false" stopOnFailure="false" stopOnIncomplete="false" stopOnSkipped="false" syntaxCheck="false" processIsolation="false" colors="true">
+    <testsuites>
+        <testsuite name="Resistance">
+            <directory>./src/ActiveCollab/Resistance</directory>
+            <exclude>./src/ActiveCollab/Resistance/TestCase.php</exclude>
+            <exclude>./src/ActiveCollab/Resistance/Storage</exclude>
+        </testsuite>
+    </testsuites>
+</phpunit>
