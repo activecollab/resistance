@@ -1,6 +1,17 @@
 {
   "name" : "activecollab/resistance",
-  "description" : "Simple Redis persistence for PHP",
+  "type": "library",
+  "description": "Resistance is a simple Redis key manager for PHP. It does not try to be a fully featured ORM, just to make keyspace management easier.",
+  "prefer-stable": true,
+  "keywords": [ "redis", "persistence", "activecollab" ],
+  "homepage": "https://www.activecollab.com/labs/index.html",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ilija Studen",
+      "email": "ilija.studen@activecollab.com"
+    }
+  ],
   "require" : {
     "php": ">=5.5.0",
     "ext-json" : "*",
