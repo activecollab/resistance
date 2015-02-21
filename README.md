@@ -27,8 +27,6 @@ Implement a storage:
   use ActiveCollab\Resistance\Storage\Field\IntegerField;
 
   /**
-   * Accounts storage
-   *
    * @package ActiveCollab\GrandCentral\Storage
    */
   final class MyObjects extends Storage
@@ -50,7 +48,7 @@ Implement a storage:
         'clients_count' =>  new IntegerField,
       ]);
 
-      $this->makeUnique('subdomain');
+      $this->makeUnique('url');
     }
   }
 ```
