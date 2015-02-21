@@ -31,6 +31,8 @@
         'members_count' =>  new IntegerField,
         'clients_count' =>  new IntegerField,
       ]);
+
+      $this->makeUnique('subdomain');
     }
 
     /**

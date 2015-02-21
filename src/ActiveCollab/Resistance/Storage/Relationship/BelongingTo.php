@@ -9,7 +9,7 @@
   final class BelongingTo extends Relationship
   {
     /**
-     * @var \Predis\Client
+     * @var Client
      */
     private $connection;
 
@@ -119,6 +119,10 @@
      */
     private $on_change, $on_add, $on_remove, $on_clear;
 
+    /**
+     * @param  callable $callback
+     * @return $this
+     */
     public function &onChange(callable $callback)
     {
       if (is_callable($callback)) {
@@ -128,6 +132,10 @@
       return $this;
     }
 
+    /**
+     * @param  callable $callback
+     * @return $this
+     */
     public function &onAdd(callable $callback)
     {
       if (is_callable($callback)) {
@@ -137,6 +145,10 @@
       return $this;
     }
 
+    /**
+     * @param  callable $callback
+     * @return $this
+     */
     public function &onRemove(callable $callback)
     {
       if (is_callable($callback)) {
@@ -146,6 +158,10 @@
       return $this;
     }
 
+    /**
+     * @param  callable $callback
+     * @return $this
+     */
     public function &onClear(callable $callback)
     {
       if (is_callable($callback)) {

@@ -22,6 +22,11 @@
     private $namespace;
 
     /**
+     * @var string[]
+     */
+    private $unique_fields = [];
+
+    /**
      * Construct a new storage instance
      *
      * @param Client $connection
@@ -114,6 +119,7 @@
      * Insert a new record into the data store
      *
      * @return integer[]
+     * @throws Error
      */
     public function insert()
     {
@@ -130,15 +136,29 @@
           $field->validate($field_name, $data[$field_name]);
         }
 
+        if (!empty($this->unique_fields)) {
+          foreach ($data as $field_name => $field_value) {
+            if (in_array($field_name, $this->unique_fields) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
+              throw new Error("Value of '$field_name' needs to be unique");
+            }
+          }
+        }
+
+
         $id = $this->getNextId();
 
         $this->connection->transaction(function ($t) use ($id, $data) {
 
           /** @var $t \Predis\Client */
-          $t->hmset($this->getKeyById($id), $data); // $this->connection->hmset($this->getKeyById($id), $data);
-          $t->sadd($this->getIdsKey(), [ $id ]);   // $this->connection->sadd($this->getIdsKey(), [ $id ]);
-          $t->incr($this->getCountKey());           // $this->connection->incr($this->getCountKey());
-          $t->set($this->getNextIdKey(), $id + 1);  // $this->connection->set($this->getNextIdKey(), $id + 1);
+          $t->hmset($this->getKeyById($id), $data);
+          $t->sadd($this->getIdsKey(), [ $id ]);
+          $t->incr($this->getCountKey());
+
+          foreach ($this->unique_fields as $field_name) {
+            $t->sadd($this->getUniquenessKeyByField($field_name), $data[$field_name]);
+          }
+
+          $t->set($this->getNextIdKey(), $id + 1);
         });
 
         $ids[] = $id;
@@ -166,6 +186,14 @@
           }
         }
 
+        if (!empty($this->unique_fields)) {
+          foreach ($data as $field_name => $field_value) {
+            if (in_array($field_name, $this->unique_fields) && $field_value != $this->getFieldValue($id, $field_name) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
+              throw new Error("Value of '$field_name' needs to be unique");
+            }
+          }
+        }
+
         $this->connection->transaction(function ($t) use ($key, $data) {
 
           /** @var $t \Predis\Client */
@@ -189,6 +217,10 @@
 
       if ($this->connection->exists($key)) {
         $this->connection->transaction(function ($t) use ($key, $id) {
+
+          foreach ($this->unique_fields as $field_name) {
+            $this->connection->srem($this->getUniquenessKeyByField($field_name), $this->getFieldValue($id, $field_name));
+          }
 
           /** @var $t \Predis\Client */
           $t->del($key);
@@ -276,6 +308,31 @@
       $this->fields = $fields;
     }
 
+    /**
+     * @throws Error
+     */
+    protected function makeUnique()
+    {
+      foreach (func_get_args() as $field_name) {
+        if (isset($this->fields[$field_name])) {
+          $this->unique_fields[] = $field_name;
+        } else {
+          throw new Error("Field '$field_name' not defined");
+        }
+      }
+    }
+
+    /**
+     * Return true if $field_name is unique in this storage
+     *
+     * @param  string $field_name
+     * @return bool
+     */
+    public function isUnique($field_name)
+    {
+      return isset($this->fields[$field_name]) && in_array($field_name, $this->unique_fields);
+    }
+
     // ---------------------------------------------------
     //  Namespace and keys
     // ---------------------------------------------------
@@ -325,5 +382,16 @@
     public function getKeyById($id)
     {
       return "$this->namespace:$id";
+    }
+
+    /**
+     * Return key where we'll store uniqueness data for a given field
+     *
+     * @param  string $field_name
+     * @return string
+     */
+    public function getUniquenessKeyByField($field_name)
+    {
+      return "{$this->namespace}_unq_{$field_name}";
     }
   }
