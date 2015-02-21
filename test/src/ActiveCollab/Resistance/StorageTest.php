@@ -1,7 +1,7 @@
 <?php
   namespace ActiveCollab\Resistance\Test;
 
-  use ActiveCollab\Resistance;
+  use ActiveCollab\Resistance, ActiveCollab\Resistance\Test\Storage\Accounts;
 
   /**
    * @package ActiveCollab\Resistance\Test
@@ -9,11 +9,26 @@
   class StorageTest extends TestCase
   {
     /**
+     * @var Accounts
+     */
+    private $accounts;
+
+    /**
+     * Set up test environment
+     */
+    public function setUp()
+    {
+      parent::setUp();
+
+      $this->accounts = Resistance::factory('\ActiveCollab\Resistance\Test\Storage\Accounts');
+    }
+
+    /**
      * Test if namescamp is properly set from storage class
      */
     public function testNamespace()
     {
-      $this->assertEquals('gc:accounts', GrandCentral::accounts()->getNamespace());
+      $this->assertEquals('rst:accounts', $this->accounts->getNamespace());
     }
 
     /**
@@ -21,9 +36,9 @@
      */
     public function testNextId()
     {
-      $this->assertEquals(1, GrandCentral::accounts()->getNextId());
-      $this->assertEquals(1, GrandCentral::accounts()->getNextId());
-      $this->assertEquals(1, GrandCentral::accounts()->getNextId());
+      $this->assertEquals(1, $this->accounts->getNextId());
+      $this->assertEquals(1, $this->accounts->getNextId());
+      $this->assertEquals(1, $this->accounts->getNextId());
     }
 
     /**
@@ -31,17 +46,17 @@
      */
     public function testGetExistingRecord()
     {
-      $this->assertEquals(0, GrandCentral::accounts()->count());
+      $this->assertEquals(0, $this->accounts->count());
 
-      $id = GrandCentral::accounts()->insert([
+      $id = $this->accounts->insert([
         'license_key' => '123',
         'subdomain' => 'afiveone',
         'url' => 'https://www.activecollab.com',
       ])[0];
 
       $this->assertEquals(1, $id);
-      $this->assertEquals(1, GrandCentral::accounts()->count());
-      $this->assertEquals('afiveone', GrandCentral::accounts()->get($id)['subdomain']);
+      $this->assertEquals(1, $this->accounts->count());
+      $this->assertEquals('afiveone', $this->accounts->get($id)['subdomain']);
     }
 
     /**
@@ -49,7 +64,7 @@
      */
     public function testGetNonExistingRecord()
     {
-      GrandCentral::accounts()->get(1983);
+      $this->accounts->get(1983);
     }
 
     /**
@@ -57,9 +72,9 @@
      */
     public function testInsertManyAndEach()
     {
-      $this->assertEquals(0, GrandCentral::accounts()->count());
+      $this->assertEquals(0, $this->accounts->count());
 
-      list ($id1, $id2, $id3) = GrandCentral::accounts()->insert([
+      list ($id1, $id2, $id3) = $this->accounts->insert([
         'license_key' => '123',
         'subdomain' => 'afiveone',
         'url' => 'https://www.activecollab.com',
@@ -77,11 +92,11 @@
       $this->assertEquals(2, $id2);
       $this->assertEquals(3, $id3);
 
-      $this->assertEquals(3, GrandCentral::accounts()->count());
+      $this->assertEquals(3, $this->accounts->count());
 
       $callback_triggered = 0;
 
-      GrandCentral::accounts()->each(function($data, $iteration) use (&$callback_triggered) {
+      $this->accounts->each(function($data, $iteration) use (&$callback_triggered) {
 
         switch ($data['_id']) {
           case 1:
@@ -111,13 +126,13 @@
      */
     public function testDefaultValues()
     {
-      $id = GrandCentral::accounts()->insert([
+      $id = $this->accounts->insert([
         'license_key' => '123',
         'subdomain' => 'afiveone',
         'url' => 'https://www.activecollab.com',
       ])[0];
 
-      $record = GrandCentral::accounts()->get($id);
+      $record = $this->accounts->get($id);
 
       $this->assertSame(false, $record['is_paid']);
     }
@@ -127,23 +142,23 @@
      */
     public function testUpdate()
     {
-      $this->assertEquals(0, GrandCentral::accounts()->count());
+      $this->assertEquals(0, $this->accounts->count());
 
-      $id = GrandCentral::accounts()->insert([
+      $id = $this->accounts->insert([
         'license_key' => '123',
         'subdomain' => 'afiveone',
         'url' => 'https://www.activecollab.com',
       ])[0];
 
-      $this->assertEquals(1, GrandCentral::accounts()->count());
-      $this->assertEquals('afiveone', GrandCentral::accounts()->get($id)['subdomain']);
-      $this->assertEquals('123', GrandCentral::accounts()->get($id)['license_key']);
+      $this->assertEquals(1, $this->accounts->count());
+      $this->assertEquals('afiveone', $this->accounts->get($id)['subdomain']);
+      $this->assertEquals('123', $this->accounts->get($id)['license_key']);
 
-      GrandCentral::accounts()->update($id, [ 'subdomain' => '      farfaraway ', 'license_key' => '456' ]);
+      $this->accounts->update($id, [ 'subdomain' => '      farfaraway ', 'license_key' => '456' ]);
 
-      $this->assertEquals(1, GrandCentral::accounts()->count());
-      $this->assertEquals('farfaraway', GrandCentral::accounts()->get($id)['subdomain']);
-      $this->assertEquals('456', GrandCentral::accounts()->get($id)['license_key']);
+      $this->assertEquals(1, $this->accounts->count());
+      $this->assertEquals('farfaraway', $this->accounts->get($id)['subdomain']);
+      $this->assertEquals('456', $this->accounts->get($id)['license_key']);
     }
 
     /**
@@ -151,10 +166,10 @@
      */
     public function testRemove()
     {
-      $this->assertEquals(1, GrandCentral::accounts()->getNextId());
-      $this->assertEquals(0, GrandCentral::accounts()->count());
+      $this->assertEquals(1, $this->accounts->getNextId());
+      $this->assertEquals(0, $this->accounts->count());
 
-      GrandCentral::accounts()->insert([
+      $this->accounts->insert([
         'license_key' => '123',
         'subdomain' => 'afiveone',
         'url' => 'https://www.activecollab.com',
@@ -168,12 +183,12 @@
         'url' => 'https://www.activecollab.com',
       ]);
 
-      $this->assertEquals(3, GrandCentral::accounts()->count());
-      $this->assertEquals([ 1, 2, 3 ], GrandCentral::accounts()->getIds());
+      $this->assertEquals(3, $this->accounts->count());
+      $this->assertEquals([ 1, 2, 3 ], $this->accounts->getIds());
 
-      GrandCentral::accounts()->delete(2);
+      $this->accounts->delete(2);
 
-      $this->assertEquals(2, GrandCentral::accounts()->count());
-      $this->assertEquals([ 1, 3 ], GrandCentral::accounts()->getIds());
+      $this->assertEquals(2, $this->accounts->count());
+      $this->assertEquals([ 1, 3 ], $this->accounts->getIds());
     }
   }

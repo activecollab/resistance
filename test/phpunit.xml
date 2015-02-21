@@ -2,8 +2,11 @@
     <testsuites>
         <testsuite name="Resistance">
             <directory>./src/ActiveCollab/Resistance</directory>
+
+            <!-- Exclude -->
             <exclude>./src/ActiveCollab/Resistance/TestCase.php</exclude>
-            <exclude>./src/ActiveCollab/Resistance/Storage</exclude>
+            <exclude>./src/ActiveCollab/Resistance/Storage/Accounts.php</exclude>
+            <exclude>./src/ActiveCollab/Resistance/Storage/Users.php</exclude>
         </testsuite>
     </testsuites>
 </phpunit>
