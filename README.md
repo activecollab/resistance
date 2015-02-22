@@ -25,6 +25,7 @@ Implement a storage:
   use ActiveCollab\Resistance\Storage\Storage;
   use ActiveCollab\Resistance\Storage\Field\StringField;
   use ActiveCollab\Resistance\Storage\Field\IntegerField;
+  use ActiveCollab\Resistance\Storage\Field\BooleanField;
 
   /**
    * @package ActiveCollab\GrandCentral\Storage
