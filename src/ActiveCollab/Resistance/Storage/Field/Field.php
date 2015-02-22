@@ -115,4 +115,27 @@
 
       return $this;
     }
+
+    /**
+     * @var bool
+     */
+    private $is_unique = false;
+
+    /**
+     * @return $this
+     */
+    public function &unique()
+    {
+      $this->is_unique = true;
+
+      return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUnique()
+    {
+      return $this->is_unique;
+    }
   }

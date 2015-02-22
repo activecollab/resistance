@@ -90,13 +90,13 @@
     private $modifier;
 
     /**
-     * @param  string|null $modifier
+     * @param  callable|null $modifier
      * @return $this
      * @throws Error
      */
-    public function &modifier($modifier)
+    public function &modifier(callable $modifier = null)
     {
-      if (function_exists($modifier) || $modifier === null) {
+      if (is_callable($modifier) || $modifier === null) {
         $this->modifier = $modifier;
       } else {
         throw new Error("Function '$modifier' does not exist");

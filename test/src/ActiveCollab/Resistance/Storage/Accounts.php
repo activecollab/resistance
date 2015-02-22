@@ -25,14 +25,12 @@
 
       $this->setFields([
         'license_key'   => (new StringField)->required()->modifier('trim'),
-        'subdomain'     => (new StringField)->required()->modifier('trim'),
+        'subdomain'     => (new StringField)->required()->unique()->modifier('trim'),
         'url'           => (new StringField)->required()->isUrl()->modifier('trim'),
         'is_paid'       =>  new BooleanField,
         'members_count' =>  new IntegerField,
         'clients_count' =>  new IntegerField,
       ]);
-
-      $this->makeUnique('subdomain');
     }
 
     /**

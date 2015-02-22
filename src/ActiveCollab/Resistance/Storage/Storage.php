@@ -245,14 +245,9 @@
      */
     public function clear()
     {
-      if ($this->count()) {
-        foreach ($this->getIds() as $id) {
-          $this->connection->del($this->getKeyById($id));
-        }
+      foreach ($this->getKeyspace() as $key) {
+        $this->connection->del($key);
       }
-
-      $this->connection->del($this->getNextIdKey());
-      $this->connection->del($this->getCountKey());
     }
 
     /**
@@ -306,18 +301,10 @@
     protected function setFields(array $fields)
     {
       $this->fields = $fields;
-    }
 
-    /**
-     * @throws Error
-     */
-    protected function makeUnique()
-    {
-      foreach (func_get_args() as $field_name) {
-        if (isset($this->fields[$field_name])) {
+      foreach ($this->fields as $field_name => $field) {
+        if ($field->isUnique()) {
           $this->unique_fields[] = $field_name;
-        } else {
-          throw new Error("Field '$field_name' not defined");
         }
       }
     }
@@ -345,6 +332,26 @@
     public function getNamespace()
     {
       return $this->namespace;
+    }
+
+    /**
+     * Return keyspace
+     *
+     * @return array
+     */
+    protected function getKeyspace()
+    {
+      $result = [ $this->getIdsKey(), $this->getNextIdKey(), $this->getCountKey() ];
+
+      foreach ($this->getIds() as $id) {
+        $result[] = $this->getKeyById($id);
+      }
+
+      foreach ($this->unique_fields as $field) {
+        $result[] = $this->getUniquenessKeyByField($field);
+      }
+
+      return $result;
     }
 
     /**

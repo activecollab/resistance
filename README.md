@@ -42,13 +42,11 @@ Implement a storage:
       parent::__construct($connection, $application_namespace);
 
       $this->setFields([
-        'url'           => (new StringField)->required()->isUrl()->modifier('trim'),
+        'url'           => (new StringField)->required()->unique()->isUrl()->modifier('trim'),
         'is_paid'       =>  new BooleanField,
         'members_count' =>  new IntegerField,
         'clients_count' =>  new IntegerField,
       ]);
-
-      $this->makeUnique('url');
     }
   }
 ```

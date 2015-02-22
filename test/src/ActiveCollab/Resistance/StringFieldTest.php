@@ -41,9 +41,11 @@
     /**
      * @expectedException \ActiveCollab\Resistance\Error\Error
      */
-    public function testValidateFormatException()
+    public function testValidateEmailException()
     {
-      throw new Resistance\Error\ValidationError; // @TODO
+      require __DIR__ . '/Storage/EmailValidatorTests.php';
+
+      Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\EmailValidatorTests')->insert([ 'email' => 'nije email' ]);
     }
 
     /**
@@ -61,9 +63,11 @@
     /**
      * @expectedException \ActiveCollab\Resistance\Error\Error
      */
-    public function testValidateEmailException()
+    public function testValidateFormatException()
     {
-      throw new Resistance\Error\ValidationError; // @TODO
+      require __DIR__ . '/Storage/FormatValidatorTests.php';
+
+      Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\FormatValidatorTests')->insert([ 'hash' => 'not a hash' ]);
     }
 
     /**
