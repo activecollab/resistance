@@ -99,6 +99,8 @@
      */
     public function clear()
     {
+      $old_related_object_ids = $this->on_clear ? $this->get() : null; // Remember so we pass this to a callback
+
       $this->connection->del($this->key);
 
       if ($this->on_change) {
@@ -106,7 +108,7 @@
       }
 
       if ($this->on_clear) {
-        call_user_func($this->on_clear, []);
+        call_user_func($this->on_clear, [], $old_related_object_ids);
       }
     }
 
