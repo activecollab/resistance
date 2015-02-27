@@ -52,6 +52,25 @@ Implement a storage:
   }
 ```
 
+## Field Settings
+
+Common field settings:
+
+1. ``map`` - Map ID-s and values and make them accessible via ``getIdsBy()`` method,
+1. ``protect`` - Protect field from being set on ``insert()``, 
+2. ``required`` - Value is required not to be empty,
+3. ``unique`` - Make sure that field value is unique in the storage (required is implied). This setting is not applicable to boolean fields,
+
+String field settings:
+
+1. ``format`` - Value is required and needs to match the given format,
+2. ``isEmail`` - Value is required and needs to be a valid email address,
+3. ``isUrl`` - Value is required and needs to be a valid URL,
+4. ``modifier`` - Make sure that values go through this callback or function before they are stored.
+
+
+## Read, Update, Delete
+
 Instantiate it using a ``\ActiveCollab\Resistance::factory()``:
 
 ```php

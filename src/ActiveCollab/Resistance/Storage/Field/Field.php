@@ -109,19 +109,16 @@
     /**
      * Set if field value is required to evaluate to TRUE
      *
-     * @param  boolean $value
      * @return $this
      */
-    public function &required($value = true)
+    public function &required()
     {
-      if ($value) {
-        $this->setValidator('required', function($field_name, $value) {
+      if (empty($this->validators['required'])) {
+        $this->setValidator('required', function ($field_name, $value) {
           if (!$value) {
             throw new ValidationError("Value of '$field_name' is required");
           }
         });
-      } else {
-        $this->setValidator('required', null);
       }
 
       return $this;
