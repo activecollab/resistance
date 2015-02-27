@@ -19,7 +19,7 @@
     {
       parent::setUp();
 
-      $this->storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\ProtectFieldTests');;
+      $this->storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\ProtectFieldTests');
       $this->assertInstanceOf('\\ActiveCollab\\Resistance\\Test\\Storage\\ProtectFieldTests', $this->storage);
     }
 

@@ -23,6 +23,17 @@
     abstract public function cast($value);
 
     /**
+     * Cast value so we can use it for map key
+     *
+     * @param  mixed  $value
+     * @return string
+     */
+    public function castForMapKey($value)
+    {
+      return trim((string) $this->cast($value));
+    }
+
+    /**
      * Indicator whether we have a custom default value
      *
      * @var bool
@@ -114,6 +125,41 @@
       }
 
       return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isRequired()
+    {
+      return isset($this->validators['required']) && is_callable($this->validators['required']);
+    }
+
+    /**
+     * @var bool
+     */
+    private $is_mapped = false;
+
+    /**
+     * @return $this
+     */
+    public function &map()
+    {
+      $this->is_mapped = true;
+
+      if (!$this->isRequired()) {
+        $this->required();
+      }
+
+      return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMapped()
+    {
+      return $this->is_mapped;
     }
 
     /**

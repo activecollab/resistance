@@ -1,9 +1,10 @@
 <?php
   namespace ActiveCollab\Resistance\Storage;
 
+  use Predis\Client;
+  use Predis\Collection\Iterator\Keyspace;
   use ActiveCollab\Resistance\Error\Error;
   use Doctrine\Common\Inflector\Inflector;
-  use Predis\Client;
   use ActiveCollab\Resistance\Storage\Field\Field;
 
   /**
@@ -36,7 +37,7 @@
         $this->namespace .= ':';
       }
 
-      $this->namespace .= Inflector::camelize(array_pop(explode('\\', get_class($this))));
+      $this->namespace .= Inflector::tableize(array_pop(explode('\\', get_class($this))));
     }
 
     /**
@@ -156,7 +157,11 @@
           $t->incr($this->getCountKey());
 
           foreach ($this->unique_fields as $field_name) {
-            $t->sadd($this->getUniquenessKeyByField($field_name), $data[$field_name]);
+            $t->sadd($this->getUniquenessKeyByField($field_name), [ $data[$field_name] ]);
+          }
+
+          foreach ($this->mapped_fields as $field_name) {
+            $t->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $id ]);
           }
 
           $t->set($this->getNextIdKey(), $id + 1);
@@ -195,13 +200,35 @@
           }
         }
 
-        $this->connection->transaction(function ($t) use ($key, $data) {
+        $mapped_fields_to_update = [];
+
+        foreach ($this->mapped_fields as $field_name) {
+          if (array_key_exists($field_name, $data)) {
+            $mapped_fields_to_update[] = $field_name;
+          }
+        }
+
+        foreach ($mapped_fields_to_update as $field_name) {
+          $field_value_key = $this->getMapKeyByFieldAndValue($field_name, $this->getFieldValue($id, $field_name));
+
+          if ($this->connection->scard($field_value_key) > 1) {
+            $this->connection->srem($field_value_key, $id);
+          } else {
+            $this->connection->del($field_value_key);
+          }
+        }
+
+        $this->connection->transaction(function ($t) use ($id, $key, $data) {
 
           /** @var $t \Predis\Client */
           foreach ($data as $k => $v) {
             $t->hset($key, $k, $v);
           }
         });
+
+        foreach ($mapped_fields_to_update as $field_name) {
+          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $id ]);
+        }
       } else {
         throw new Error("Data not found at key '$key'");
       }
@@ -218,6 +245,10 @@
 
       if ($this->connection->exists($key)) {
         $this->connection->transaction(function ($t) use ($key, $id) {
+
+          foreach ($this->mapped_fields as $field_name) {
+            $this->connection->srem($this->getMapKeyByFieldAndValue($field_name, $this->getFieldValue($id, $field_name)), $id);
+          }
 
           foreach ($this->unique_fields as $field_name) {
             $this->connection->srem($this->getUniquenessKeyByField($field_name), $this->getFieldValue($id, $field_name));
@@ -238,7 +269,7 @@
      */
     public function count()
     {
-      return (integer) $this->connection->get($this->getNamespace() . '_count');
+      return (integer) $this->connection->get($this->getCountKey());
     }
 
     /**
@@ -285,6 +316,31 @@
       return $ids;
     }
 
+    /**
+     * Get ID-s of records where $field_name has $field_value
+     *
+     * Note that filed needs to be mapped for this to work. If not, this method will throw an exection
+     *
+     * @param  string $field_name
+     * @param  string $value
+     * @return array
+     * @throws Error
+     */
+    public function getIdsBy($field_name, $value)
+    {
+      if ($this->isMapped($field_name)) {
+        $ids = array_map('intval', $this->connection->smembers($this->getMapKeyByFieldAndValue($field_name, $value)));
+
+        if (count($ids)) {
+          sort($ids);
+        }
+
+        return $ids;
+      } else {
+        throw new Error("Field '$field_name' is not mapped");
+      }
+    }
+
     // ---------------------------------------------------
     //  Fields
     // ---------------------------------------------------
@@ -304,6 +360,10 @@
       $this->fields = $fields;
 
       foreach ($this->fields as $field_name => $field) {
+        if ($field->isMapped()) {
+          $this->mapped_fields[] = $field_name;
+        }
+
         if ($field->isUnique()) {
           $this->unique_fields[] = $field_name;
         }
@@ -317,7 +377,27 @@
     /**
      * @var string[]
      */
-    private $unique_fields = [], $protected_fields = [];
+    private $mapped_fields = [], $unique_fields = [], $protected_fields = [];
+
+    /**
+     * @param  string $field_name
+     * @return bool
+     */
+    public function isRequired($field_name)
+    {
+      return isset($this->fields[$field_name]) && $this->fields[$field_name]->isRequired();
+    }
+
+    /**
+     * Return true if $field_name is mapped
+     *
+     * @param  string $field_name
+     * @return bool
+     */
+    public function isMapped($field_name)
+    {
+      return isset($this->fields[$field_name]) && in_array($field_name, $this->mapped_fields);
+    }
 
     /**
      * Return true if $field_name is unique in this storage
@@ -360,16 +440,12 @@
      *
      * @return array
      */
-    protected function getKeyspace()
+    public function getKeyspace()
     {
-      $result = [ $this->getIdsKey(), $this->getNextIdKey(), $this->getCountKey() ];
+      $result = [];
 
-      foreach ($this->getIds() as $id) {
-        $result[] = $this->getKeyById($id);
-      }
-
-      foreach ($this->unique_fields as $field) {
-        $result[] = $this->getUniquenessKeyByField($field);
+      foreach (new Keyspace($this->connection, "$this->namespace:*") as $key) {
+        $result[] = $key;
       }
 
       return $result;
@@ -382,7 +458,7 @@
      */
     public function getIdsKey()
     {
-      return "{$this->namespace}_ids";
+      return "{$this->namespace}:ids";
     }
 
     /**
@@ -390,7 +466,7 @@
      */
     public function getNextIdKey()
     {
-      return "{$this->namespace}_next_id";
+      return "{$this->namespace}:next_id";
     }
 
     /**
@@ -398,7 +474,7 @@
      */
     public function getCountKey()
     {
-      return "{$this->namespace}_count";
+      return "{$this->namespace}:count";
     }
 
     /**
@@ -413,6 +489,23 @@
     }
 
     /**
+     * Get key name for field value mapping
+     *
+     * @param  mixed  $field_name
+     * @param  mixed  $value
+     * @return string
+     * @throws Error
+     */
+    public function getMapKeyByFieldAndValue($field_name, $value)
+    {
+      if (isset($this->fields[$field_name])) {
+        return "{$this->namespace}:map:{$field_name}:" . $this->fields[$field_name]->castForMapKey($value);
+      } else {
+        throw new Error("Field '$field_name' is not present");
+      }
+    }
+
+    /**
      * Return key where we'll store uniqueness data for a given field
      *
      * @param  string $field_name
@@ -420,6 +513,6 @@
      */
     public function getUniquenessKeyByField($field_name)
     {
-      return "{$this->namespace}_unq_{$field_name}";
+      return "{$this->namespace}:unq:{$field_name}";
     }
   }

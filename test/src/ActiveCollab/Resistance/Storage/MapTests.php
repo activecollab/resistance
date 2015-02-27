@@ -8,7 +8,7 @@
   /**
    * @package ActiveCollab\Resistance\Test\Storage
    */
-  class FormatValidatorTests extends Storage
+  class MapTests extends Storage
   {
     /**
      * Construct a new storage instance
@@ -21,7 +21,8 @@
       parent::__construct($connection, $application_namespace);
 
       $this->setFields([
-        'hash' => (new StringField)->required()->format(StringField::FORMAT_HASH),
+        'map_field'     => (new StringField)->map(),
+        'not_map_field' =>  new StringField
       ]);
     }
   }
