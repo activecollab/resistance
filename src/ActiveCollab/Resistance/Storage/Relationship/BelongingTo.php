@@ -73,7 +73,7 @@
         }
 
         if ($this->on_add) {
-          call_user_func($this->on_add, $this->get());
+          call_user_func($this->on_add, $this->get(), array_map('intval', func_get_args()));
         }
       }
     }
@@ -90,7 +90,7 @@
       }
 
       if ($this->on_remove) {
-        call_user_func($this->on_remove, $this->get());
+        call_user_func($this->on_remove, $this->get(), $related_object_id);
       }
     }
 
