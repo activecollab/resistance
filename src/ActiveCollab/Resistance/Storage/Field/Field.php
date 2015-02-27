@@ -138,4 +138,27 @@
     {
       return $this->is_unique;
     }
+
+    /**
+     * @var bool
+     */
+    private $is_protected = false;
+
+    /**
+     * @return $this
+     */
+    public function &protect()
+    {
+      $this->is_protected = true;
+
+      return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isProtected()
+    {
+      return $this->is_protected;
+    }
   }

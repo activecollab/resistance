@@ -22,11 +22,6 @@
     private $namespace;
 
     /**
-     * @var string[]
-     */
-    private $unique_fields = [];
-
-    /**
      * Construct a new storage instance
      *
      * @param Client $connection
@@ -126,6 +121,12 @@
       $ids = [];
 
       foreach (func_get_args() as $data) {
+        foreach ($this->protected_fields as $protected_field) {
+          if (array_key_exists($protected_field, $data)) {
+            throw new Error("Field '$protected_field' is protected and can't be set on insert");
+          }
+        }
+
         foreach ($this->fields as $field_name => $field) {
           if (array_key_exists($field_name, $data)) {
             $data[$field_name] = $field->cast($data[$field_name]);
@@ -306,8 +307,17 @@
         if ($field->isUnique()) {
           $this->unique_fields[] = $field_name;
         }
+
+        if ($field->isProtected()) {
+          $this->protected_fields[] = $field_name;
+        }
       }
     }
+
+    /**
+     * @var string[]
+     */
+    private $unique_fields = [], $protected_fields = [];
 
     /**
      * Return true if $field_name is unique in this storage
@@ -318,6 +328,17 @@
     public function isUnique($field_name)
     {
       return isset($this->fields[$field_name]) && in_array($field_name, $this->unique_fields);
+    }
+
+    /**
+     * Return true if $field_name is unique in this storage
+     *
+     * @param  string $field_name
+     * @return bool
+     */
+    public function isProtected($field_name)
+    {
+      return isset($this->fields[$field_name]) && in_array($field_name, $this->protected_fields);
     }
 
     // ---------------------------------------------------
