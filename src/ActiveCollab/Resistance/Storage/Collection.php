@@ -1,11 +1,8 @@
 <?php
   namespace ActiveCollab\Resistance\Storage;
 
-  use Predis\Client;
-  use Predis\Collection\Iterator\Keyspace;
-  use ActiveCollab\Resistance\Error\Error;
-  use Doctrine\Common\Inflector\Inflector;
   use ActiveCollab\Resistance\Storage\Field\Field;
+  use ActiveCollab\Resistance\Error\Error;
 
   /**
    * @package ActiveCollab\Resistance\Storage
@@ -245,16 +242,6 @@
     }
 
     /**
-     * Clear the storage
-     */
-    public function clear()
-    {
-      foreach ($this->getKeyspace() as $key) {
-        $this->connection->del($key);
-      }
-    }
-
-    /**
      * Return next item ID
      *
      * @return integer
@@ -396,32 +383,6 @@
     // ---------------------------------------------------
     //  Namespace and keys
     // ---------------------------------------------------
-
-    /**
-     * Return data namespace in the Redis storage
-     *
-     * @return string
-     */
-    public function getNamespace()
-    {
-      return $this->namespace;
-    }
-
-    /**
-     * Return keyspace
-     *
-     * @return array
-     */
-    public function getKeyspace()
-    {
-      $result = [];
-
-      foreach (new Keyspace($this->connection, "$this->namespace:*") as $key) {
-        $result[] = $key;
-      }
-
-      return $result;
-    }
 
     /**
      * Return ID-s list key

@@ -2,6 +2,7 @@
   namespace ActiveCollab\Resistance\Storage;
 
   use Predis\Client;
+  use Predis\Collection\Iterator\Keyspace;
   use Doctrine\Common\Inflector\Inflector;
 
   /**
@@ -47,5 +48,41 @@
       $class_name_bits = explode('\\', get_class($this));
 
       return Inflector::tableize(array_pop($class_name_bits));
+    }
+
+    /**
+     * Return data namespace in the Redis storage
+     *
+     * @return string
+     */
+    public function getNamespace()
+    {
+      return $this->namespace;
+    }
+
+    /**
+     * Return keyspace
+     *
+     * @return array
+     */
+    public function getKeyspace()
+    {
+      $result = [];
+
+      foreach (new Keyspace($this->connection, "$this->namespace:*") as $key) {
+        $result[] = $key;
+      }
+
+      return $result;
+    }
+
+    /**
+     * Clear the storage
+     */
+    public function clear()
+    {
+      foreach ($this->getKeyspace() as $key) {
+        $this->connection->del($key);
+      }
     }
   }
