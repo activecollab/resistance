@@ -1,5 +1,7 @@
 # Resistance
 
+[![Build Status](https://travis-ci.org/activecollab/resistance.svg?branch=master)](https://travis-ci.org/activecollab/resistance)
+
 Resistance is a simple Redis key manager for PHP. It does not try to be a fully featured ORM, just to make keyspace 
 management easier.
 
