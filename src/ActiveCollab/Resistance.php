@@ -19,6 +19,11 @@
     private static $connection;
 
     /**
+     * @var int
+     */
+    private static $selected_database = 0;
+
+    /**
      * @var string
      */
     private static $namespace;
@@ -40,9 +45,28 @@
 
       if ($select_database > 0) {
         self::$connection->select($select_database);
+        self::$selected_database = $select_database;
       }
 
       self::$namespace = $namespace;
+    }
+
+    /**
+     * Return # of selected Redis database
+     */
+    public static function getSelectedDatabase()
+    {
+      return self::$selected_database;
+    }
+
+    /**
+     * Return server info
+     *
+     * @return array
+     */
+    public static function getServerInfo()
+    {
+      return self::$connection->info();
     }
 
     /**
