@@ -30,7 +30,7 @@
      */
     public function castForMapKey($value)
     {
-      return trim((string) $this->cast($value));
+      return mb_strtolower(trim((string) $this->cast($value)));
     }
 
     /**

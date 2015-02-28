@@ -77,6 +77,67 @@
     }
 
     /**
+     * Test if maps are case-insensitive
+     */
+    public function testCaseInsensitiveMapping()
+    {
+      list ($id1, $id2, $id3) = $this->storage->insert(
+        [ 'map_field' => 'Value 1' ],
+        [ 'map_field' => 'VALUE 1' ],
+        [ 'map_field' => 'valuE 1' ]
+      );
+
+      $this->assertEquals(1, $id1);
+      $this->assertEquals(2, $id2);
+      $this->assertEquals(3, $id3);
+
+      $this->assertEquals([ 1, 2, 3 ], $this->storage->getIdsBy('map_field', 'value 1'));
+    }
+
+    /**
+     * Test if 0 is returned when we try to get ID for a value that does not exist
+     */
+    public function testGetIdByWhenRecordIsNotFound()
+    {
+      $this->assertSame(0, $this->storage->getIdBy('map_field', 'some value'));
+    }
+
+    /**
+     * Test if we get the proper ID for a given value
+     */
+    public function testGetIdByWhenRecordIsFound()
+    {
+      list ($id1, $id2) = $this->storage->insert(
+        [ 'map_field' => 'Value 1' ],
+        [ 'map_field' => 'Value 2' ]
+      );
+
+      $this->assertEquals(1, $id1);
+      $this->assertEquals(2, $id2);
+
+      $this->assertEquals(1, $this->storage->getIdBy('map_field', 'Value 1'));
+      $this->assertEquals(2, $this->storage->getIdBy('map_field', 'Value 2'));
+    }
+
+    /**
+     * @expectedException \ActiveCollab\Resistance\Error\Error
+     */
+    public function testGetIdByWhenThereAreMultipleRecords()
+    {
+      list ($id1, $id2, $id3) = $this->storage->insert(
+        [ 'map_field' => 'Value 1' ],
+        [ 'map_field' => 'Value 1' ],
+        [ 'map_field' => 'Value 2' ]
+      );
+
+      $this->assertEquals(1, $id1);
+      $this->assertEquals(2, $id2);
+      $this->assertEquals(3, $id3);
+
+      $this->storage->getIdBy('map_field', 'Value 1');
+    }
+
+    /**
      * Test if maps are updated when record is updated
      */
     public function testGetByIdsChangesOnItemUpdate()
@@ -159,8 +220,8 @@
 
       $keyspace = $this->storage->getKeyspace();
 
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:Value 1', $keyspace));
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:Value 2', $keyspace));
+      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
+      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
 
       // ---------------------------------------------------
       //  Update value
@@ -173,8 +234,8 @@
 
       $keyspace = $this->storage->getKeyspace();
 
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:Value 1', $keyspace));
-      $this->assertFalse(in_array('rst:map_tests:map:map_field:Value 2', $keyspace));
+      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
+      $this->assertFalse(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
 
       // ---------------------------------------------------
       //  Removal
@@ -189,7 +250,7 @@
 
       $keyspace = $this->storage->getKeyspace();
 
-      $this->assertFalse(in_array('rst:map_tests:map:map_field:Value 1', $keyspace));
-      $this->assertFalse(in_array('rst:map_tests:map:map_field:Value 2', $keyspace));
+      $this->assertFalse(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
+      $this->assertFalse(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
     }
   }

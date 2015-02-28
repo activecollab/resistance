@@ -44,6 +44,26 @@
     /**
      * Test get existing record
      */
+    public function testExists()
+    {
+      $this->assertEquals(0, $this->accounts->count());
+
+      $this->assertFalse($this->accounts->exists(1));
+
+      $id = $this->accounts->insert([
+        'license_key' => '123',
+        'subdomain' => 'afiveone',
+        'url' => 'https://www.activecollab.com',
+      ])[0];
+
+      $this->assertEquals(1, $id);
+      $this->assertEquals(1, $this->accounts->count());
+      $this->assertTrue($this->accounts->exists(1));
+    }
+
+    /**
+     * Test get existing record
+     */
     public function testGetExistingRecord()
     {
       $this->assertEquals(0, $this->accounts->count());

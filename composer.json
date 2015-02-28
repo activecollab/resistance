@@ -16,6 +16,7 @@
     "php": ">=5.5.0",
     "ext-json" : "*",
     "ext-filter" : "*",
+    "ext-mbstring" : "*",
     "predis/predis": "~1.0",
     "doctrine/inflector": "~1.0"
   },

@@ -10,6 +10,17 @@
   abstract class Collection extends Storage
   {
     /**
+     * Return true if we have a record under $id
+     *
+     * @param  integer $id
+     * @return bool
+     */
+    public function exists($id)
+    {
+      return (boolean) $this->connection->exists($this->getKeyById($id));
+    }
+
+    /**
      * Return by ID
      *
      * @param  integer $id
@@ -295,6 +306,31 @@
         }
 
         return $ids;
+      } else {
+        throw new Error("Field '$field_name' is not mapped");
+      }
+    }
+
+    /**
+     * Return first ID by field and value
+     *
+     * @param  string $field_name
+     * @param  string $value
+     * @return int
+     * @throws Error
+     */
+    public function getIdBy($field_name, $value)
+    {
+      if ($this->isMapped($field_name)) {
+        $ids = $this->connection->smembers($this->getMapKeyByFieldAndValue($field_name, $value));
+
+        if (empty($ids)) {
+          return 0;
+        } else if (count($ids) == 1) {
+          return (integer) array_shift($ids);
+        } else {
+          throw new Error("Multiple ID-s found for '$field_name' field '$value' value");
+        }
       } else {
         throw new Error("Field '$field_name' is not mapped");
       }
