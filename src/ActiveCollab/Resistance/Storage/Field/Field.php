@@ -167,6 +167,10 @@
     {
       $this->is_unique = true;
 
+      if (!$this->isRequired()) {
+        $this->required();
+      }
+
       return $this;
     }
 
