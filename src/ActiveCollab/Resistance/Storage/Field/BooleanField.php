@@ -31,7 +31,7 @@
     /**
      * @throws Error
      */
-    public function unique()
+    public function &unique()
     {
       throw new Error('Boolean fields can not be unique');
     }
