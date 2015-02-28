@@ -499,7 +499,13 @@
     public function getMapKeyByFieldAndValue($field_name, $value)
     {
       if (isset($this->fields[$field_name])) {
-        return "{$this->namespace}:map:{$field_name}:" . $this->fields[$field_name]->castForMapKey($value);
+        $casted_to_be_used_in_key = $this->fields[$field_name]->castForMapKey($value);
+
+        if (empty($casted_to_be_used_in_key)) {
+          return "{$this->namespace}:map:{$field_name}-empty";
+        } else {
+          return "{$this->namespace}:map:{$field_name}:$casted_to_be_used_in_key";
+        }
       } else {
         throw new Error("Field '$field_name' is not present");
       }

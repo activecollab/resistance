@@ -32,10 +32,15 @@
     public function testIsMapped()
     {
       $this->assertTrue($this->storage->isMapped('map_field'));
-      $this->assertTrue($this->storage->isRequired('map_field')); // Values of mapped fields should be automatically required
-
       $this->assertFalse($this->storage->isMapped('not_map_field'));
-      $this->assertFalse($this->storage->isRequired('not_map_field'));
+    }
+
+    /**
+     * Test to make sure that Resistance allows mapped field not to be required
+     */
+    public function testMappedFieldDoesNotNeedToBeRequired()
+    {
+      $this->assertFalse($this->storage->isRequired('map_field'));
     }
 
     /**
@@ -51,19 +56,24 @@
      */
     public function testGetIdsBy()
     {
-      list ($id1, $id2, $id3) = $this->storage->insert(
+      list ($id1, $id2, $id3, $id4, $id5) = $this->storage->insert(
         [ 'map_field' => 'Value 1' ],
         [ 'map_field' => 'Value 1' ],
-        [ 'map_field' => 'Value 2' ]
+        [ 'map_field' => 'Value 2' ],
+        [ 'map_field' => null ],
+        [ 'map_field' => null ]
       );
 
       $this->assertEquals(1, $id1);
       $this->assertEquals(2, $id2);
       $this->assertEquals(3, $id3);
+      $this->assertEquals(4, $id4);
+      $this->assertEquals(5, $id5);
 
       $this->assertEquals([ 1, 2 ], $this->storage->getIdsBy('map_field', 'Value 1'));
       $this->assertEquals([ 3 ], $this->storage->getIdsBy('map_field', 'Value 2'));
       $this->assertEquals([], $this->storage->getIdsBy('map_field', 'Value 3'));
+      $this->assertEquals([ 4, 5 ], $this->storage->getIdsBy('map_field', null));
     }
 
     /**

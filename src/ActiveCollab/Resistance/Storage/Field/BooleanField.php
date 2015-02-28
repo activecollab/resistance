@@ -18,6 +18,17 @@
     }
 
     /**
+     * Cast value so we can use it for map key
+     *
+     * @param  mixed  $value
+     * @return string
+     */
+    public function castForMapKey($value)
+    {
+      return $this->cast($value) ? '1' : '0';
+    }
+
+    /**
      * @throws Error
      */
     public function unique()

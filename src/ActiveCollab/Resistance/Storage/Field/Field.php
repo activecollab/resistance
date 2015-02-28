@@ -144,10 +144,6 @@
     {
       $this->is_mapped = true;
 
-      if (!$this->isRequired()) {
-        $this->required();
-      }
-
       return $this;
     }
 
