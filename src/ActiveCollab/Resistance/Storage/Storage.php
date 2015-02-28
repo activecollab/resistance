@@ -37,7 +37,9 @@
         $this->namespace .= ':';
       }
 
-      $this->namespace .= Inflector::tableize(array_pop(explode('\\', get_class($this))));
+      $class_name_bits = explode('\\', get_class($this));
+
+      $this->namespace .= Inflector::tableize(array_pop($class_name_bits));
     }
 
     /**
