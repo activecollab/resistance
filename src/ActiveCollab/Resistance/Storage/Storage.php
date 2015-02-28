@@ -34,8 +34,18 @@
         $this->namespace .= ':';
       }
 
+      $this->namespace .= $this->getStorageNamespace();
+    }
+
+    /**
+     * Return storage namespace
+     *
+     * @return string
+     */
+    protected function getStorageNamespace()
+    {
       $class_name_bits = explode('\\', get_class($this));
 
-      $this->namespace .= Inflector::tableize(array_pop($class_name_bits));
+      return Inflector::tableize(array_pop($class_name_bits));
     }
   }
