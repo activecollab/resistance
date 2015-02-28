@@ -1,25 +1,19 @@
 <?php
   namespace ActiveCollab\Resistance\Test\Storage;
 
-  use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage;
+  use ActiveCollab\Resistance\Storage\Collection;
   use ActiveCollab\Resistance\Storage\Field\StringField;
 
   /**
    * @package ActiveCollab\Resistance\Test\Storage
    */
-  class FormatValidatorTests extends Storage
+  class FormatValidatorTests extends Collection
   {
     /**
-     * Construct a new storage instance
-     *
-     * @param Client $connection
-     * @param string $application_namespace
+     * Construct a new collection instance
      */
-    public function __construct(Client &$connection, $application_namespace)
+    public function __construct()
     {
-      parent::__construct($connection, $application_namespace);
-
       $this->setFields([
         'hash' => (new StringField)->required()->format(StringField::FORMAT_HASH),
       ]);

@@ -2,24 +2,18 @@
   namespace ActiveCollab\Resistance\Test\Storage;
 
   use ActiveCollab\Resistance\Storage\Field\BooleanField;
-  use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage;
+  use ActiveCollab\Resistance\Storage\Collection;
 
   /**
    * @package ActiveCollab\Resistance\Test\Storage
    */
-  class BooleanRequiredTests extends Storage
+  class BooleanRequiredTests extends Collection
   {
     /**
-     * Construct a new storage instance
-     *
-     * @param Client $connection
-     * @param string $application_namespace
+     * Construct a new collection instance
      */
-    public function __construct(Client &$connection, $application_namespace)
+    public function __construct()
     {
-      parent::__construct($connection, $application_namespace);
-
       $this->setFields([
         'makes_no_sense' => (new BooleanField)->unique()
       ]);

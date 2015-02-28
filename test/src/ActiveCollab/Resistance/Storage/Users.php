@@ -1,24 +1,20 @@
 <?php
   namespace ActiveCollab\Resistance\Test\Storage;
 
-  use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage, ActiveCollab\Resistance\Storage\Field\IntegerField, ActiveCollab\Resistance\Storage\Field\StringField;
+  use ActiveCollab\Resistance\Storage\Collection;
+  use ActiveCollab\Resistance\Storage\Field\IntegerField;
+  use ActiveCollab\Resistance\Storage\Field\StringField;
 
   /**
    * @package ActiveCollab\Resistance\Storage
    */
-  class Users extends Storage
+  class Users extends Collection
   {
     /**
-     * Construct a new storage instance
-     *
-     * @param Client $connection
-     * @param string $application_namespace
+     * Construct a new collection instance
      */
-    public function __construct(Client &$connection, $application_namespace)
+    public function __construct()
     {
-      parent::__construct($connection, $application_namespace);
-
       $this->setFields([
         'acid'  => (new IntegerField)->required(),
         'email' => (new StringField)->isEmail(),

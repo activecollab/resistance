@@ -1,22 +1,16 @@
 <?php
   namespace ActiveCollab\Resistance\Test\Storage;
 
+  use ActiveCollab\Resistance\Storage\Collection;
   use ActiveCollab\Resistance\Storage\Field\StringField;
-  use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage;
 
-  class EmailValidatorTests extends Storage
+  class EmailValidatorTests extends Collection
   {
     /**
-     * Construct a new storage instance
-     *
-     * @param Client $connection
-     * @param string $application_namespace
+     * Construct a new collection instance
      */
-    public function __construct(Client &$connection, $application_namespace)
+    public function __construct()
     {
-      parent::__construct($connection, $application_namespace);
-
       $this->setFields([
         'email' => (new StringField)->required()->isEmail(),
       ]);

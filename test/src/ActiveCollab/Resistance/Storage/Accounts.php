@@ -3,7 +3,7 @@
 
   use ActiveCollab\Resistance;
   use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage, ActiveCollab\Resistance\Storage\Field\IntegerField, ActiveCollab\Resistance\Storage\Field\StringField, ActiveCollab\Resistance\Storage\Field\BooleanField, ActiveCollab\Resistance\Storage\Relationship\BelongingTo;
+  use ActiveCollab\Resistance\Storage\Collection, ActiveCollab\Resistance\Storage\Field\IntegerField, ActiveCollab\Resistance\Storage\Field\StringField, ActiveCollab\Resistance\Storage\Field\BooleanField, ActiveCollab\Resistance\Storage\Relationship\BelongingTo;
 
 
   /**
@@ -11,18 +11,13 @@
    *
    * @package ActiveCollab\Resistance\Storage
    */
-  final class Accounts extends Storage
+  final class Accounts extends Collection
   {
     /**
-     * Construct a new storage instance
-     *
-     * @param Client $connection
-     * @param string $application_namespace
+     * Construct a new collection instance
      */
-    public function __construct(Client &$connection, $application_namespace)
+    public function __construct()
     {
-      parent::__construct($connection, $application_namespace);
-
       $this->setFields([
         'license_key'   => (new StringField)->required()->modifier('trim'),
         'subdomain'     => (new StringField)->required()->unique()->modifier('trim'),

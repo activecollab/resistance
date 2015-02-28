@@ -2,6 +2,8 @@
   namespace ActiveCollab;
 
   use Predis\Client;
+  use ActiveCollab\Resistance\Storage\Storage;
+  use ActiveCollab\Resistance\Error\Error;
 
   ini_set('error_report', E_ALL);
   ini_set('display_errors', 1);
@@ -73,12 +75,20 @@
      * Create and store storage instances
      *
      * @param  string $class
-     * @return object
+     * @return Storage
+     * @throws Error
      */
     public static function &factory($class)
     {
       if (empty(self::$factory_products[$class])) {
-        self::$factory_products[$class] = new $class(self::$connection, self::$namespace);
+        $product = new $class;
+
+        if ($product instanceof Storage) {
+          $product->setConnection(self::$connection, self::$namespace);
+          self::$factory_products[$class] = $product;
+        } else {
+          throw new Error("Class '$class' is not a valid Storage subclass");
+        }
       }
 
       return self::$factory_products[$class];
