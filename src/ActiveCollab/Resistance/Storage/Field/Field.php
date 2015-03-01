@@ -27,10 +27,17 @@
      *
      * @param  mixed  $value
      * @return string
+     * @throws Error
      */
     public function castForMapKey($value)
     {
-      return mb_strtolower(trim((string) $this->cast($value)));
+      $map_key = mb_strtolower(trim((string) $this->cast($value)));
+
+      if (mb_strlen($map_key) > 1024) {
+        throw new Error('Values longer than 1024 characters cannot be mapped');
+      }
+
+      return $map_key;
     }
 
     /**

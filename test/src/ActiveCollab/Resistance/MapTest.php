@@ -253,4 +253,46 @@
       $this->assertFalse(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
       $this->assertFalse(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
     }
+
+    /**
+     * Test if we can accept string up to 1024 in length
+     */
+    public function testUpTo1024CharacatersPassing()
+    {
+      $this->assertEquals(1, $this->storage->insert([ 'map_field' => $this->make_string(1024) ])[0]);
+    }
+
+    /**
+     * @expectedException \ActiveCollab\Resistance\Error\Error
+     */
+    public function testMoreThan1024CharacatersFailing()
+    {
+      $this->storage->insert([ 'map_field' => $this->make_string(1025) ]);
+    }
+
+    /**
+     * Make random string
+     *
+     * @param integer $length
+     * @param string $allowed_chars
+     * @return string
+     */
+    private function make_string($length = 10, $allowed_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
+    {
+      $allowed_chars_len = strlen($allowed_chars);
+
+      $result = '';
+
+      for ($i = 0; $i < $length; $i++) {
+        $result .= mb_substr($allowed_chars, rand(0, $allowed_chars_len), 1);
+      }
+
+      while (mb_strlen($result) < $length) {
+        $result .= mb_substr($allowed_chars, rand(0, $allowed_chars_len), 1);
+      }
+
+      $this->assertEquals($length, mb_strlen($result));
+
+      return $result;
+    }
   }
