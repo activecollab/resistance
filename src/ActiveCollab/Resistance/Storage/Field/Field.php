@@ -9,14 +9,6 @@
   abstract class Field
   {
     /**
-     * Construct new field instance
-     */
-    public function __construct()
-    {
-      $this->default_value = $this->cast(null);
-    }
-
-    /**
      * @param  mixed $value
      * @return mixed
      */
@@ -70,7 +62,7 @@
      */
     public function &setDefaultValue($value)
     {
-      $this->default_value = $this->cast($value);
+      $this->custom_default_value = $this->cast($value);
       $this->custom_default_value_is_set = true;
 
       return $this;

@@ -60,6 +60,7 @@
       $this->assertEquals('123', $record['license_key']);
       $this->assertEquals('afiveone', $record['subdomain']);
       $this->assertEquals('https://afiveone.manageprojects.com', $record['url']);
+      $this->assertEquals('UTC', $record['timezone']);
       $this->assertEquals(false, $record['is_paid']);
     }
   }
