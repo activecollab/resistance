@@ -417,6 +417,29 @@
     }
 
     // ---------------------------------------------------
+    //  Migration routines
+    // ---------------------------------------------------
+
+    /**
+     * Build value map for the given field
+     *
+     * @param string $field_name
+     */
+    public function buildValueMap($field_name)
+    {
+      $this->connection->transaction(function ($t) use ($field_name) {
+        /** @var $t \Predis\Client */
+        $this->each(function($data) use (&$t, $field_name) {
+          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $data['_id'] ]);
+        });
+      });
+
+      if (!in_array($field_name, $this->mapped_fields)) {
+        $this->mapped_fields[] = $field_name;
+      }
+    }
+
+    // ---------------------------------------------------
     //  Namespace and keys
     // ---------------------------------------------------
 
