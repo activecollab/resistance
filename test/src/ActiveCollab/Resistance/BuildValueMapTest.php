@@ -35,6 +35,9 @@
       $this->storage->getIdsBy('map_field', 'Value #1');
     }
 
+    /**
+     * Test if value map is properly built
+     */
     public function testBuildValueMap()
     {
       $this->storage->insert(

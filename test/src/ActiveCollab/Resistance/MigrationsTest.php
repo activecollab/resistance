@@ -63,10 +63,48 @@
      */
     public function testEverythingExecutedAfterMigrateUp()
     {
-      $this->assertSame(4, Resistance::migrate(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations'));
+      $this->migrate();
 
       foreach ($this->migrations as $migration) {
         $this->assertTrue(Resistance::isMigrationExecuted($migration));
       }
+    }
+
+    /**
+     * @expectedException \ActiveCollab\Resistance\Error\Error
+     */
+    public function testExceptionBecauseTheresNotYetAMapField()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1' ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2' ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3' ]
+      );
+
+      $this->adding_storage->getIdsBy('not_yet_a_map', 'Value #1');
+    }
+
+    /**
+     * Test if map is properly added after migration
+     */
+    public function testNoNotYetAMapExceptionAfterMigration()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1' ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2' ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3' ]
+      );
+
+      $this->migrate();
+
+      $this->assertEquals([ 1 ], $this->adding_storage->getIdsBy('not_yet_a_map', 'Value #1'));
+    }
+
+    /**
+     * Migrate up
+     */
+    private function migrate()
+    {
+      $this->assertSame(4, Resistance::migrate(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations'));
     }
   }
