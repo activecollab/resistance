@@ -4,6 +4,7 @@
   use ActiveCollab\Resistance, ActiveCollab\Resistance\Storage\Migration;
 
   require_once __DIR__ . '/Storage/AddingMigrationTests.php';
+  require_once __DIR__ . '/Storage/RemovingMigrationTests.php';
 
   /**
    * @package ActiveCollab\Resistance\Test
@@ -14,6 +15,11 @@
      * @var \ActiveCollab\Resistance\Test\Storage\AddingMigrationTests
      */
     private $adding_storage;
+
+    /**
+     * @var \ActiveCollab\Resistance\Test\Storage\RemovingMigrationTests
+     */
+    private $removing_storage;
 
     /**
      * @var Migration[]
@@ -29,6 +35,9 @@
 
       $this->adding_storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\AddingMigrationTests');
       $this->assertInstanceOf('\\ActiveCollab\\Resistance\\Test\\Storage\\AddingMigrationTests', $this->adding_storage);
+
+      $this->removing_storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\RemovingMigrationTests');
+      $this->assertInstanceOf('\\ActiveCollab\\Resistance\\Test\\Storage\\RemovingMigrationTests', $this->removing_storage);
 
       $this->migrations = Resistance::discoverMigrations(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations');
     }
@@ -95,9 +104,34 @@
         [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3' ]
       );
 
+      $keyspace = $this->adding_storage->getKeyspace();
+
       $this->migrate();
 
       $this->assertEquals([ 1 ], $this->adding_storage->getIdsBy('not_yet_a_map', 'Value #1'));
+      $this->assertCount(count($keyspace) + 3, $this->adding_storage->getKeyspace(), 'New three keys for three values');
+    }
+
+    /**
+     * Test remove map from a field
+     */
+    public function testRemoveMap()
+    {
+      $this->removing_storage->insert(
+        [ 'mapped_field' => 'Value #1', 'unique_field' => 'Unique #1' ],
+        [ 'mapped_field' => 'Value #1', 'unique_field' => 'Unique #2' ],
+        [ 'mapped_field' => 'Value #2', 'unique_field' => 'Unique #3' ]
+      );
+
+      $keyspace = $this->removing_storage->getKeyspace();
+
+      $this->assertTrue($this->removing_storage->isMapped('mapped_field'));
+
+      $this->migrate();
+
+      $this->assertFalse($this->removing_storage->isMapped('mapped_field'));
+
+      $this->assertCount(count($keyspace) - 2, $this->removing_storage->getKeyspace(), 'Two keys less since we removed a map');
     }
 
     /**

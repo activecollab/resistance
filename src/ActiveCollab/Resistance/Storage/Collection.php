@@ -3,6 +3,7 @@
 
   use ActiveCollab\Resistance\Storage\Field\Field;
   use ActiveCollab\Resistance\Error\Error;
+  use Predis\Collection\Iterator;
 
   /**
    * @package ActiveCollab\Resistance\Storage
@@ -436,6 +437,26 @@
 
       if (!in_array($field_name, $this->mapped_fields)) {
         $this->mapped_fields[] = $field_name;
+      }
+    }
+
+    /**
+     * @param string $field_name
+     */
+    public function removeValueMap($field_name)
+    {
+      $keys = [];
+
+      foreach (new Iterator\Keyspace($this->connection, $this->getMapKeyByFieldAndValue($field_name, '*')) as $key) {
+        $keys[] = $key;
+      }
+
+      if (!empty($keys)) {
+        $this->connection->del($keys);
+      }
+
+      if (($key = array_search($field_name, $this->mapped_fields)) !== false) {
+        unset($this->mapped_fields[$key]);
       }
     }
 
