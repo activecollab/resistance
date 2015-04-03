@@ -109,7 +109,7 @@
       $this->migrate();
 
       $this->assertEquals([ 1 ], $this->adding_storage->getIdsBy('not_yet_a_map', 'Value #1'));
-      $this->assertCount(count($keyspace) + 3, $this->adding_storage->getKeyspace(), 'New three keys for three values');
+      $this->assertCount(count($keyspace) + 4, $this->adding_storage->getKeyspace(), 'Four new keys - three mapped values and one uniquness key');
     }
 
     /**
@@ -131,7 +131,63 @@
 
       $this->assertFalse($this->removing_storage->isMapped('mapped_field'));
 
-      $this->assertCount(count($keyspace) - 2, $this->removing_storage->getKeyspace(), 'Two keys less since we removed a map');
+      $this->assertCount(count($keyspace) - 3, $this->removing_storage->getKeyspace(), 'Three keys less, two mapped values and one unique key');
+    }
+
+    /**
+     * @expectedException \ActiveCollab\Resistance\Error\Error
+     */
+    public function testBuildUniquenessMapExceptionWhenThereAreNonUniqueValues()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1' ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2' ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #1' ]
+      );
+
+      $this->adding_storage->buildUniquenessMap('not_yet_unique');
+    }
+
+    /**
+     * Test if uniqueness map is properly set
+     */
+    public function testBuildUniquenessMap()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1' ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2' ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3' ]
+      );
+
+      $keyspace = $this->adding_storage->getKeyspace();
+      $this->assertFalse($this->adding_storage->isUnique('not_yet_unique'));
+
+      $this->adding_storage->buildUniquenessMap('not_yet_unique');
+
+      $this->assertCount(count($keyspace) + 1, $this->adding_storage->getKeyspace(), 'New three keys for three values');
+      $this->assertTrue($this->adding_storage->isUnique('not_yet_unique'));
+    }
+
+    /**
+     * Test and make sure that uniquness map is removed
+     */
+    public function testRemoveUniqunessMap()
+    {
+      $this->removing_storage->insert(
+        [ 'mapped_field' => 'Value #1', 'unique_field' => 'Unique #1' ],
+        [ 'mapped_field' => 'Value #1', 'unique_field' => 'Unique #2' ],
+        [ 'mapped_field' => 'Value #2', 'unique_field' => 'Unique #3' ]
+      );
+
+      $keyspace = $this->removing_storage->getKeyspace();
+
+      $this->assertTrue($this->removing_storage->isUnique('unique_field'));
+
+      $this->migrate();
+
+      $this->assertFalse($this->removing_storage->isUnique('unique_field'));
+
+      $this->assertCount(count($keyspace) - 3, $this->removing_storage->getKeyspace(), 'Three keys less, two mapped values and one unique key');
     }
 
     /**

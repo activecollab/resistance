@@ -460,6 +460,47 @@
       }
     }
 
+    /**
+     * @param  string $field_name
+     * @throws Error
+     */
+    public function buildUniquenessMap($field_name)
+    {
+      $values = [];
+
+      foreach ($this->getIds() as $id) {
+        $value = $this->getFieldValue($id, $field_name);
+
+        if (in_array($value, $values)) {
+          throw new Error("Can't make field '$field_name' unique. Value '$value' is stored at least twice");
+        }
+
+        $values[] = $value;
+      }
+
+      if (count($values)) {
+        $this->connection->sadd($this->getUniquenessKeyByField($field_name), $values);
+      }
+
+      if (!in_array($field_name, $this->unique_fields)) {
+        $this->unique_fields[] = $field_name;
+      }
+    }
+
+    /**
+     * Remove uniquness from the given field
+     *
+     * @param string $field_name
+     */
+    public function removeUniquenessMap($field_name)
+    {
+      $this->connection->del([ $this->getUniquenessKeyByField($field_name) ]);
+
+      if (($key = array_search($field_name, $this->unique_fields)) !== false) {
+        unset($this->unique_fields[$key]);
+      }
+    }
+
     // ---------------------------------------------------
     //  Namespace and keys
     // ---------------------------------------------------
