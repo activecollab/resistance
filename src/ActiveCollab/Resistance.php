@@ -123,12 +123,9 @@
 
       foreach (self::discoverMigrations($path, $namespace) as $migration) {
         if (!self::isMigrationExecuted($migration)) {
-          self::$connection->transaction(function ($t) use (&$migration) {
-            $migration->up($t); // Execute migration
+          $migration->up();
 
-            self::$connection->sadd(self::getExecutedMigrationsSetKey(), get_class($migration)); // Remember that this migration is executed
-          });
-
+          self::$connection->sadd(self::getExecutedMigrationsSetKey(), get_class($migration)); // Remember that this migration is executed
           $executed_migrations++;
         }
       }

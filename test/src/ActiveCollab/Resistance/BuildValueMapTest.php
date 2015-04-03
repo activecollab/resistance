@@ -45,6 +45,8 @@
         [ 'map_field' => 'Value #3' ]
       );
 
+      $this->assertEquals(5, $this->storage->count());
+
       $this->storage->buildValueMap('map_field');
 
       $this->assertEquals([ 1, 4 ], $this->storage->getIdsBy('map_field', 'Value #1'));

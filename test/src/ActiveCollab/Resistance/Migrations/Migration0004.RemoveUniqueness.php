@@ -1,14 +1,14 @@
 <?php
   namespace ActiveCollab\Resistance\Test\Migrations;
 
-  use ActiveCollab\Resistance\Storage\Migration, Predis\Transaction\MultiExec;
+  use ActiveCollab\Resistance\Storage\Migration;
 
   class Migration0004 extends Migration
   {
     /**
-     * @param MultiExec $t
+     * Migrate up
      */
-    public function up(MultiExec $t)
+    public function up()
     {
 
     }

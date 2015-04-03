@@ -3,7 +3,7 @@
 
   use ActiveCollab\Resistance, ActiveCollab\Resistance\Storage\Migration;
 
-  require_once __DIR__ . '/Storage/MigrationTests.php';
+  require_once __DIR__ . '/Storage/AddingMigrationTests.php';
 
   /**
    * @package ActiveCollab\Resistance\Test
@@ -11,9 +11,9 @@
   class MigrationsTest extends TestCase
   {
     /**
-     * @var \ActiveCollab\Resistance\Test\Storage\MigrationTests
+     * @var \ActiveCollab\Resistance\Test\Storage\AddingMigrationTests
      */
-    private $storage;
+    private $adding_storage;
 
     /**
      * @var Migration[]
@@ -27,8 +27,8 @@
     {
       parent::setUp();
 
-      $this->storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\MigrationTests');
-      $this->assertInstanceOf('\\ActiveCollab\\Resistance\\Test\\Storage\\MigrationTests', $this->storage);
+      $this->adding_storage = Resistance::factory('\\ActiveCollab\\Resistance\\Test\\Storage\\AddingMigrationTests');
+      $this->assertInstanceOf('\\ActiveCollab\\Resistance\\Test\\Storage\\AddingMigrationTests', $this->adding_storage);
 
       $this->migrations = Resistance::discoverMigrations(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations');
     }
