@@ -371,6 +371,17 @@
     }
 
     /**
+     * Return true if $field_name field exists in this collection
+     *
+     * @param  string  $field_name
+     * @return boolean
+     */
+    public function fieldExists($field_name)
+    {
+      return isset($this->fields[$field_name]) && $this->fields[$field_name] instanceof Field;
+    }
+
+    /**
      * @var string[]
      */
     private $mapped_fields = [], $unique_fields = [], $protected_fields = [];
@@ -381,7 +392,7 @@
      */
     public function isRequired($field_name)
     {
-      return isset($this->fields[$field_name]) && $this->fields[$field_name]->isRequired();
+      return $this->fieldExists($field_name) && $this->fields[$field_name]->isRequired();
     }
 
     /**
@@ -392,7 +403,7 @@
      */
     public function isMapped($field_name)
     {
-      return isset($this->fields[$field_name]) && in_array($field_name, $this->mapped_fields);
+      return $this->fieldExists($field_name) && in_array($field_name, $this->mapped_fields);
     }
 
     /**
@@ -403,7 +414,7 @@
      */
     public function isUnique($field_name)
     {
-      return isset($this->fields[$field_name]) && in_array($field_name, $this->unique_fields);
+      return $this->fieldExists($field_name) && in_array($field_name, $this->unique_fields);
     }
 
     /**
@@ -414,12 +425,46 @@
      */
     public function isProtected($field_name)
     {
-      return isset($this->fields[$field_name]) && in_array($field_name, $this->protected_fields);
+      return $this->fieldExists($field_name) && in_array($field_name, $this->protected_fields);
     }
 
     // ---------------------------------------------------
     //  Migration routines
     // ---------------------------------------------------
+
+    /**
+     * Walk through all records and set value of $field_name to $default_value
+     *
+     * If $default_value is callable, it will be called for each record
+     *
+     * @param  string $field_name
+     * @param  mixed  $default_value
+     * @throws Error
+     */
+    public function bulkSetFieldValue($field_name, $default_value = null)
+    {
+      if ($this->fieldExists($field_name)) {
+        foreach ($this->getIds() as $id) {
+          $this->update($id, [
+            $field_name => is_callable($default_value) ? call_user_func($default_value, $id) : $default_value
+          ]);
+        }
+      } else {
+        throw new Error("Field '$field_name' does not exist");
+      }
+    }
+
+    /**
+     * Clean up Redis database when field is removed
+     *
+     * @param string $field_name
+     */
+    public function bulkRemoveFieldValue($field_name)
+    {
+      foreach ($this->getIds() as $id) {
+        $this->connection->hdel($this->getKeyById($id), [ $field_name ]);
+      }
+    }
 
     /**
      * Build value map for the given field
@@ -552,7 +597,7 @@
      */
     public function getMapKeyByFieldAndValue($field_name, $value)
     {
-      if (isset($this->fields[$field_name])) {
+      if ($this->fieldExists($field_name)) {
         $casted_to_be_used_in_key = $this->fields[$field_name]->castForMapKey($value);
 
         if (empty($casted_to_be_used_in_key)) {

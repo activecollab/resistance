@@ -47,12 +47,11 @@
      */
     public function testDiscover()
     {
-      $this->assertCount(4, $this->migrations);
-
       $this->assertInstanceOf('ActiveCollab\Resistance\Test\Migrations\Migration0001', $this->migrations[0]);
       $this->assertInstanceOf('ActiveCollab\Resistance\Test\Migrations\Migration0002', $this->migrations[1]);
       $this->assertInstanceOf('ActiveCollab\Resistance\Test\Migrations\Migration0003', $this->migrations[2]);
       $this->assertInstanceOf('ActiveCollab\Resistance\Test\Migrations\Migration0004', $this->migrations[3]);
+      $this->assertInstanceOf('ActiveCollab\Resistance\Test\Migrations\Migration0005', $this->migrations[4]);
     }
 
     /**
@@ -77,6 +76,58 @@
       foreach ($this->migrations as $migration) {
         $this->assertTrue(Resistance::isMigrationExecuted($migration));
       }
+    }
+
+    /**
+     * @expectedException \ActiveCollab\Resistance\Error\Error
+     */
+    public function testExceptionWhenTryingToBulkSetNonExistingField()
+    {
+      $this->adding_storage->bulkSetFieldValue('non_existing_field', 123);
+    }
+
+    /**
+     * Walk through all records and bulk set values of a field
+     */
+    public function testBulkSetFieldValue()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1' ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2' ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3' ]
+      );
+
+      $this->assertSame(0, $this->adding_storage->getFieldValue(1, 'bulk_set_values'));
+      $this->assertSame(0, $this->adding_storage->getFieldValue(2, 'bulk_set_values'));
+      $this->assertSame(0, $this->adding_storage->getFieldValue(3, 'bulk_set_values'));
+
+      $this->migrate();
+
+      $this->assertSame(1, $this->adding_storage->getFieldValue(1, 'bulk_set_values'));
+      $this->assertSame(2, $this->adding_storage->getFieldValue(2, 'bulk_set_values'));
+      $this->assertSame(3, $this->adding_storage->getFieldValue(3, 'bulk_set_values'));
+    }
+
+    /**
+     * Walk through all records and bulk set values of a field
+     */
+    public function testBulkRemoveFieldValue()
+    {
+      $this->adding_storage->insert(
+        [ 'not_yet_a_map' => 'Value #1', 'not_yet_unique' => 'Unique #1', 'bulk_remove_values' => 9 ],
+        [ 'not_yet_a_map' => 'Value #2', 'not_yet_unique' => 'Unique #2', 'bulk_remove_values' => 8 ],
+        [ 'not_yet_a_map' => 'Value #3', 'not_yet_unique' => 'Unique #3', 'bulk_remove_values' => 7 ]
+      );
+
+      $this->assertSame(9, $this->adding_storage->getFieldValue(1, 'bulk_remove_values'));
+      $this->assertSame(8, $this->adding_storage->getFieldValue(2, 'bulk_remove_values'));
+      $this->assertSame(7, $this->adding_storage->getFieldValue(3, 'bulk_remove_values'));
+
+      $this->migrate();
+
+      $this->assertSame(0, $this->adding_storage->getFieldValue(1, 'bulk_remove_values'));
+      $this->assertSame(0, $this->adding_storage->getFieldValue(2, 'bulk_remove_values'));
+      $this->assertSame(0, $this->adding_storage->getFieldValue(3, 'bulk_remove_values'));
     }
 
     /**
@@ -195,6 +246,6 @@
      */
     private function migrate()
     {
-      $this->assertSame(4, Resistance::migrate(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations'));
+      $this->assertSame(6, Resistance::migrate(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations'));
     }
   }
