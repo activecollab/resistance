@@ -82,6 +82,33 @@ Instantiate it using a ``\ActiveCollab\Resistance::factory()``:
 \ActiveCollab\Resistance::factory("\My\App\Storage\MyObjects")->getFieldValue($id, 'url');
 \ActiveCollab\Resistance::factory("\My\App\Storage\MyObjects")->delete($id);
 ```
+
+## Migrations
+
+Resistance implements a simple data migration system. to use migrations, create directory in your project where you will store migrations and name them like ``Migration0001.ThisIsMigrationDescription.php`` or ``Migration0001.php``. Class names of migrations should be in ``Migration0001`` format and they need to extend ``ActiveCollab\Resistance\Storage\Migration`` class. Description bit is optional and ignored - it's just for your reference. Example:
+ 
+ 
+    /my/awesome/project/migrations/Migration0001.AddedNewField.php
+    /my/awesome/project/migrations/Migration0002.MappedFieldValue.php
+    /my/awesome/project/migrations/Migration0003.MadeFieldUnqiue.php
+    /my/awesome/project/migrations/Migration0004.NoLongerNeedsToBeUnique.php
+    
+You can instruct Resistance to execute all migrations using:
+
+```php
+\ActiveCollab\Resistance::migrate('/my/awesome/project/migrations/', 'MyOrg\MyProject\Migrations');
+```
+
+First parameter is path to the folder where you have your migration classes stored, and second parameter is your migrations namespace. If you are not namespacing your migrations (not recommended), ommit the second parameter blank.
+
+Useful methods that you can use in migrations:
+
+* ``\ActiveCollab\Resistance\Storage\Collection::bulkSetFieldValue($field_name, $value)`` - Bulk set field value. ``$value`` can be callback that is called for each record, or a value that will be cast and stored, 
+* ``\ActiveCollab\Resistance\Storage\Collection::bulkRemoveFieldValue($field_name)`` - Clean up values from the database, usually after field has been dropped from the collection, 
+* ``\ActiveCollab\Resistance\Storage\Collection::buildValueMap($field_name)`` - Create value map for the field, usually after field has been added to the collection, 
+* ``\ActiveCollab\Resistance\Storage\Collection::removeValueMap($field_name)`` - Remove value map from the field, after field was removed or mapping is no longer needed, 
+* ``\ActiveCollab\Resistance\Storage\Collection::buildUniquenessMap($field_name)`` - Create uniqueness map for the field, usually after field has been added to the collection, 
+* ``\ActiveCollab\Resistance\Storage\Collection::removeUniquenessMap($field_name)`` - Remove uniqueness map from the field, after field was removed or it no longer needs to be marked as unique. 
     
 ## How to contribute?
 
