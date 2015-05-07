@@ -4,7 +4,7 @@
   /**
    * @package ActiveCollab\Resistance\Storage\Field
    */
-  class IntegerField extends Field
+  class TimestampField extends IntegerField
   {
     /**
      * @param  mixed   $value
@@ -12,6 +12,12 @@
      */
     public function cast($value)
     {
-      return (integer) $value;
+      if (is_int($value)) {
+        return $value;
+      } else if (is_numeric($value)) {
+        return (integer) $value;
+      } else {
+        return strtotime($value);
+      }
     }
   }
