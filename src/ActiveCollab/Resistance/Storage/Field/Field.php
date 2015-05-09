@@ -9,10 +9,34 @@
   abstract class Field
   {
     /**
+     * Convert $value to the native PHP type that is handled by this field
+     *
      * @param  mixed $value
      * @return mixed
      */
     abstract public function cast($value);
+
+    /**
+     * Prepare value for the storage
+     *
+     * @param  mixed  $value
+     * @return string
+     */
+    public function serialize($value)
+    {
+      return (string) $this->cast($value);
+    }
+
+    /**
+     * Conver stored value to the native PHP type
+     *
+     * @param  string $value
+     * @return mixed
+     */
+    public function unserialize($value)
+    {
+      return $this->cast($value);
+    }
 
     /**
      * Cast value so we can use it for map key

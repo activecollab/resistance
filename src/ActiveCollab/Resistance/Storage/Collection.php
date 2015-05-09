@@ -41,7 +41,7 @@
 
       foreach ($data as $k => $v) {
         if (isset($this->fields[$k])) {
-          $data[$k] = $this->fields[$k]->cast($v);
+          $data[$k] = $this->fields[$k]->unserialize($v);
         } else {
           unset($data[$k]);
         }
@@ -68,7 +68,7 @@
           throw new Error("Data not found at key '$key'");
         }
 
-        return $this->fields[$field]->cast($this->connection->hget($key, $field));
+        return $this->fields[$field]->unserialize($this->connection->hget($key, $field));
       } else {
         throw new Error("Field '$field' is not defined");
       }
@@ -117,6 +117,7 @@
           }
 
           $field->validate($field_name, $data[$field_name]);
+          $data[$field_name] = $field->serialize($data[$field_name]);
         }
 
         if (!empty($this->unique_fields)) {
@@ -126,7 +127,6 @@
             }
           }
         }
-
 
         $id = $this->getNextId();
 
@@ -167,7 +167,9 @@
         foreach ($data as $k => $v) {
           if (isset($this->fields[$k])) {
             $data[$k] = $this->fields[$k]->cast($v);
+
             $this->fields[$k]->validate($k, $data[$k]);
+            $data[$k] = $this->fields[$k]->serialize($data[$k]);
           } else {
             unset($data[$k]);
           }
