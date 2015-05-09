@@ -14,7 +14,10 @@
      * @param  mixed $value
      * @return mixed
      */
-    abstract public function cast($value);
+    public function cast($value)
+    {
+      return $value;
+    }
 
     /**
      * Prepare value for the storage
