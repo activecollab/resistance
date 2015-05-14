@@ -56,6 +56,16 @@
     }
 
     /**
+     * Return connection instance, in case we need it to directly work with the database
+     *
+     * @return Client
+     */
+    public static function &getConnection()
+    {
+      return self::$connection;
+    }
+
+    /**
      * Return # of selected Redis database
      */
     public static function getSelectedDatabase()
