@@ -41,6 +41,25 @@
     }
 
     /**
+     * Test set members
+     */
+    public function testSet()
+    {
+      $this->createUsers(5);
+
+      $users_in_afiveone = $this->accounts->usersBelongingTo(1);
+
+      $users_in_afiveone->set(1, 2, 3);
+      $this->assertEquals([ 1, 2, 3 ], $users_in_afiveone->get());
+
+      $users_in_afiveone->set(3, 4, 5);
+      $this->assertEquals([ 3, 4, 5 ], $users_in_afiveone->get());
+
+      $users_in_afiveone->set();
+      $this->assertEquals([], $users_in_afiveone->get());
+    }
+
+    /**
      * Test add members
      */
     public function testAdd()
@@ -102,6 +121,7 @@
      */
     private function createUsers($how_many)
     {
+      /** @var \ActiveCollab\Resistance\Test\Storage\Users $users */
       $users = Resistance::factory('\ActiveCollab\Resistance\Test\Storage\Users');
 
       for ($i = 1; $i <= $how_many; $i++) {

@@ -40,6 +40,22 @@
     }
 
     /**
+     * Set members
+     */
+    public function set()
+    {
+      $this->connection->del([ $this->key ]);
+
+      if (func_num_args()) {
+        $this->connection->sadd($this->key, func_get_args());
+
+        if ($this->on_change) {
+          call_user_func($this->on_change, $this->get());
+        }
+      }
+    }
+
+    /**
      * Return true if $related_object_id is related to this context
      *
      * @param  integer $related_object_id
