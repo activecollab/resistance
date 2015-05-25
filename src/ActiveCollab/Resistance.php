@@ -1,9 +1,8 @@
 <?php
   namespace ActiveCollab;
 
-  use ActiveCollab\Resistance\Storage\Migration;
+  use ActiveCollab\Resistance\Storage\Storage, ActiveCollab\Resistance\Storage\Collection, ActiveCollab\Resistance\Storage\Migration;
   use Predis\Client;
-  use ActiveCollab\Resistance\Storage\Storage;
   use ActiveCollab\Resistance\Error\Error;
   use DirectoryIterator, ReflectionClass;
 
@@ -87,7 +86,7 @@
      * Create and store storage instances
      *
      * @param  string $class
-     * @return Storage
+     * @return Collection
      * @throws Error
      */
     public static function &factory($class)
