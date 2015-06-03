@@ -36,7 +36,7 @@
      */
     public function testNamespace()
     {
-      $this->assertEquals('rst:accounts', $this->accounts->getNamespace());
+      $this->assertEquals('rst:{accounts}', $this->accounts->getNamespace());
     }
 
     /**

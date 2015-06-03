@@ -28,7 +28,7 @@
      */
     public function testNamespace()
     {
-      $this->assertEquals('rst:accounts', $this->accounts->getNamespace());
+      $this->assertEquals('rst:{accounts}', $this->accounts->getNamespace());
     }
 
     /**
@@ -117,7 +117,6 @@
       $callback_triggered = 0;
 
       $this->accounts->each(function($data, $iteration) use (&$callback_triggered) {
-
         switch ($data['_id']) {
           case 1:
             $this->assertEquals('afiveone', $data['subdomain']);

@@ -3,7 +3,7 @@
 
   use ActiveCollab\Resistance\Storage\Field\Field;
   use ActiveCollab\Resistance\Error\Error;
-  use Predis\Collection\Iterator;
+  use Redis;
 
   /**
    * @package ActiveCollab\Resistance\Storage
@@ -130,19 +130,19 @@
 
         $id = $this->getNextId();
 
-        $this->connection->transaction(function ($t) use ($id, $data) {
+        $this->transaction(function ($t) use ($id, $data) {
 
-          /** @var $t \Predis\Client */
+          /** @var $t Redis */
           $t->hmset($this->getKeyById($id), $data);
-          $t->sadd($this->getIdsKey(), [ $id ]);
+          $t->sadd($this->getIdsKey(), $id);
           $t->incr($this->getCountKey());
 
           foreach ($this->unique_fields as $field_name) {
-            $t->sadd($this->getUniquenessKeyByField($field_name), [ $data[$field_name] ]);
+            $t->sadd($this->getUniquenessKeyByField($field_name), $data[$field_name]);
           }
 
           foreach ($this->mapped_fields as $field_name) {
-            $t->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $id ]);
+            $t->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), $id);
           }
 
           $t->set($this->getNextIdKey(), $id + 1);
@@ -201,16 +201,15 @@
           }
         }
 
-        $this->connection->transaction(function ($t) use ($id, $key, $data) {
-
-          /** @var $t \Predis\Client */
+        $this->transaction(function ($t) use ($id, $key, $data) {
+          /** @var Redis $t */
           foreach ($data as $k => $v) {
             $t->hset($key, $k, $v);
           }
         });
 
         foreach ($mapped_fields_to_update as $field_name) {
-          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $id ]);
+          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), $id);
         }
       } else {
         throw new Error("Data not found at key '$key'");
@@ -227,7 +226,7 @@
       $key = $this->getKeyById($id);
 
       if ($this->connection->exists($key)) {
-        $this->connection->transaction(function ($t) use ($key, $id) {
+        $this->transaction(function ($t) use ($key, $id) {
 
           foreach ($this->mapped_fields as $field_name) {
             $this->connection->srem($this->getMapKeyByFieldAndValue($field_name, $this->getFieldValue($id, $field_name)), $id);
@@ -237,7 +236,7 @@
             $this->connection->srem($this->getUniquenessKeyByField($field_name), $this->getFieldValue($id, $field_name));
           }
 
-          /** @var $t \Predis\Client */
+          /** @var Redis $t */
           $t->del($key);
           $t->srem($this->getIdsKey(), $id);
           $t->decr($this->getCountKey());
@@ -464,7 +463,7 @@
     public function bulkRemoveFieldValue($field_name)
     {
       foreach ($this->getIds() as $id) {
-        $this->connection->hdel($this->getKeyById($id), [ $field_name ]);
+        $this->connection->hdel($this->getKeyById($id), $field_name);
       }
     }
 
@@ -475,10 +474,10 @@
      */
     public function buildValueMap($field_name)
     {
-      $this->connection->transaction(function ($t) use ($field_name) {
-        /** @var $t \Predis\Client */
+      $this->transaction(function ($t) use ($field_name) {
+        /** @var Redis $t */
         $this->each(function($data) use (&$t, $field_name) {
-          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), [ $data['_id'] ]);
+          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), $data['_id']);
         });
       });
 
@@ -492,11 +491,7 @@
      */
     public function removeValueMap($field_name)
     {
-      $keys = [];
-
-      foreach (new Iterator\Keyspace($this->connection, $this->getMapKeyByFieldAndValue($field_name, '*')) as $key) {
-        $keys[] = $key;
-      }
+      $keys = $this->getKeysByPattern($this->getMapKeyByFieldAndValue($field_name, '*'));
 
       if (!empty($keys)) {
         $this->connection->del($keys);
@@ -526,7 +521,11 @@
       }
 
       if (count($values)) {
-        $this->connection->sadd($this->getUniquenessKeyByField($field_name), $values);
+        $uniqueness_key = $this->getUniquenessKeyByField($field_name);
+
+        foreach ($values as $value) {
+          $this->connection->sadd($uniqueness_key, $value);
+        }
       }
 
       if (!in_array($field_name, $this->unique_fields)) {

@@ -1,9 +1,8 @@
 <?php
   namespace ActiveCollab\Resistance\Storage;
 
-  use Predis\Client;
-  use Predis\Collection\Iterator\Keyspace;
   use Doctrine\Common\Inflector\Inflector;
+  use Redis;
 
   /**
    * @package ActiveCollab\Resistance\Storage
@@ -11,7 +10,7 @@
   abstract class Storage
   {
     /**
-     * @var Client
+     * @var Redis|RedisCluster
      */
     protected $connection;
 
@@ -20,13 +19,31 @@
      */
     protected $namespace;
 
+//    /**
+//     * Construct a new storage instance
+//     *
+//     * @param Redis|RedisCluster $connection
+//     * @param string             $application_namespace
+//     */
+//    public function __construct($connection, $application_namespace)
+//    {
+//      $this->connection = $connection;
+//      $this->namespace = $application_namespace;
+//
+//      if ($this->namespace) {
+//        $this->namespace .= ':';
+//      }
+//
+//      $this->namespace .= $this->getStorageNamespace();
+//    }
+
     /**
      * Construct a new storage instance
      *
-     * @param Client $connection
-     * @param string $application_namespace
+     * @param Redis|RedisCluster $connection
+     * @param string             $application_namespace
      */
-    public function setConnection(Client &$connection, $application_namespace)
+    public function setConnection(&$connection, $application_namespace)
     {
       $this->connection = $connection;
       $this->namespace = $application_namespace;
@@ -39,6 +56,14 @@
     }
 
     /**
+     * @param callable $callback
+     */
+    protected function transaction(callable $callback)
+    {
+      call_user_func($callback, $this->connection);
+    }
+
+    /**
      * Return storage namespace
      *
      * @return string
@@ -47,7 +72,7 @@
     {
       $class_name_bits = explode('\\', get_class($this));
 
-      return Inflector::tableize(array_pop($class_name_bits));
+      return '{' . Inflector::tableize(array_pop($class_name_bits)) . '}';
     }
 
     /**
@@ -67,9 +92,22 @@
      */
     public function getKeyspace()
     {
+      return $this->getKeysByPattern("$this->namespace:*");
+    }
+
+    /**
+     * Return keys by pattern
+     *
+     * @todo Make it use SCAN instead of KEYS
+     *
+     * @param  string $pattern
+     * @return array
+     */
+    protected function getKeysByPattern($pattern)
+    {
       $result = [];
 
-      foreach (new Keyspace($this->connection, "$this->namespace:*") as $key) {
+      foreach ($this->connection->keys($pattern) as $key) {
         $result[] = $key;
       }
 

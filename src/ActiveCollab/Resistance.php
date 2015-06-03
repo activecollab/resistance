@@ -2,9 +2,9 @@
   namespace ActiveCollab;
 
   use ActiveCollab\Resistance\Storage\Storage, ActiveCollab\Resistance\Storage\Collection, ActiveCollab\Resistance\Storage\Migration;
-  use Predis\Client;
   use ActiveCollab\Resistance\Error\Error;
   use DirectoryIterator, ReflectionClass;
+  use Redis, RedisCluster;
 
   ini_set('error_report', E_ALL);
   ini_set('display_errors', 1);
@@ -17,7 +17,7 @@
     const VERSION = '1.0.0';
 
     /**
-     * @var Client
+     * @var Redis
      */
     private static $connection;
 
@@ -29,7 +29,7 @@
     /**
      * @var string
      */
-    private static $namespace;
+    private static $namespace = 'rst';
 
     /**
      * @var array
@@ -37,27 +37,57 @@
     private static $factory_products = [];
 
     /**
-     * @param string     $namespace
-     * @param integer    $select_database
-     * @param array|null $connection_params
-     * @param array|null $connection_options
+     * Connect to a Redis node
+     *
+     * @param string $host
+     * @param int    $port
      */
-    public static function connect($namespace, $select_database = 0, $connection_params = null, $connection_options = null)
+    public static function connect($host = '127.0.0.1', $port = 6379)
     {
-      self::$connection = new Client($connection_params, $connection_options);
-
-      if ($select_database > 0) {
-        self::$connection->select($select_database);
-        self::$selected_database = $select_database;
-      }
-
-      self::$namespace = $namespace;
+      self::$connection = new Redis();
+      self::$connection->connect($host, $port);
     }
+
+    /**
+     * @param array $nodes
+     */
+    public static function connectToCluster(array $nodes)
+    {
+      self::$connection = new RedisCluster(null, $nodes);
+    }
+
+    /**
+     * Set an application namespace
+     *
+     * @param string $value
+     */
+    public static function setNamespace($value)
+    {
+      self::$namespace = trim($value);
+    }
+
+//    /**
+//     * @param string     $namespace
+//     * @param integer    $select_database
+//     * @param array|null $connection_params
+//     * @param array|null $connection_options
+//     */
+//    public static function connect($namespace, $select_database = 0, $connection_params = null, $connection_options = null)
+//    {
+//      self::$connection = new Client($connection_params, $connection_options);
+//
+//      if ($select_database > 0) {
+//        self::$connection->select($select_database);
+//        self::$selected_database = $select_database;
+//      }
+//
+//      self::$namespace = $namespace;
+//    }
 
     /**
      * Return connection instance, in case we need it to directly work with the database
      *
-     * @return Client
+     * @return Redis
      */
     public static function &getConnection()
     {
@@ -85,18 +115,16 @@
     /**
      * Create and store storage instances
      *
-     * @param  string $class
-     * @return Collection
+     * @param  string             $class
+     * @return Storage|Collection
      * @throws Error
      */
     public static function &factory($class)
     {
       if (empty(self::$factory_products[$class])) {
-        $product = new $class;
-
-        if ($product instanceof Storage) {
-          $product->setConnection(self::$connection, self::$namespace);
-          self::$factory_products[$class] = $product;
+        if ((new ReflectionClass($class))->isSubclassOf('\ActiveCollab\Resistance\Storage\Storage')) {
+          self::$factory_products[$class] = new $class;
+          self::$factory_products[$class]->setConnection(self::$connection, self::$namespace);
         } else {
           throw new Error("Class '$class' is not a valid Storage subclass");
         }
@@ -110,7 +138,14 @@
      */
     public static function reset()
     {
-      self::$connection->flushdb();
+      if (self::$connection instanceof RedisCluster) {
+        foreach(self::$connection->_masters() as $master) {
+          self::$connection->flushAll($master);
+        }
+      } else if (self::$connection instanceof Redis) {
+        self::$connection->flushall();
+      }
+
       self::$factory_products = [];
     }
 
