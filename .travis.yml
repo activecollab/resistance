@@ -2,6 +2,9 @@ language: php
 php:
   - 5.5
   - 5.6
+env:
+  - TEST_REDIS_CLUSTER=0
+  - TEST_REDIS_CLUSTER=1
 services: redis-server
 install: make travis-install
 before_script: make travis-before
