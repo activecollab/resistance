@@ -1,7 +1,7 @@
 <?php
   namespace ActiveCollab\Resistance\Storage\Relationship;
 
-  use Predis\Client;
+  use Redis, RedisCluster;
 
   /**
    * @package ActiveCollab\Resistance\Storage\Relationship
@@ -9,7 +9,7 @@
   final class BelongingTo extends Relationship
   {
     /**
-     * @var Client
+     * @var Redis|RedisCluster
      */
     private $connection;
 
@@ -19,11 +19,11 @@
     private $key;
 
     /**
-     * @param Client $connection
-     * @param string $context_key
-     * @param string $relationship_name
+     * @param Redis|RedisCluster $connection
+     * @param string             $context_key
+     * @param string             $relationship_name
      */
-    public function __construct(Client &$connection, $context_key, $relationship_name)
+    public function __construct(&$connection, $context_key, $relationship_name)
     {
       $this->connection = $connection;
       $this->key = $context_key . ':' . $relationship_name;
@@ -47,7 +47,9 @@
       $this->connection->del([ $this->key ]);
 
       if (func_num_args()) {
-        $this->connection->sadd($this->key, func_get_args());
+        foreach (func_get_args() as $related_record_id) {
+          $this->connection->sadd($this->key, $related_record_id);
+        }
 
         if ($this->on_change) {
           call_user_func($this->on_change, $this->get());
@@ -82,7 +84,9 @@
     public function add()
     {
       if (func_num_args()) {
-        $this->connection->sadd($this->key, func_get_args());
+        foreach (func_get_args() as $related_record_id) {
+          $this->connection->sadd($this->key, $related_record_id);
+        }
 
         if ($this->on_change) {
           call_user_func($this->on_change, $this->get());

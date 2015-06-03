@@ -13,7 +13,7 @@
      */
     public function setUp()
     {
-      Resistance::connect('rst', 15);
+      Resistance::connectToCluster([ '127.0.0.1:30001', '127.0.0.1:30002', '127.0.0.1:30003' ]);
       Resistance::reset();
     }
 

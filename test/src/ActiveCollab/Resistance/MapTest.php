@@ -220,8 +220,8 @@
 
       $keyspace = $this->storage->getKeyspace();
 
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
+      $this->assertTrue(in_array('rst:{map_tests}:map:map_field:value 1', $keyspace));
+      $this->assertTrue(in_array('rst:{map_tests}:map:map_field:value 2', $keyspace));
 
       // ---------------------------------------------------
       //  Update value
@@ -234,8 +234,8 @@
 
       $keyspace = $this->storage->getKeyspace();
 
-      $this->assertTrue(in_array('rst:map_tests:map:map_field:value 1', $keyspace));
-      $this->assertFalse(in_array('rst:map_tests:map:map_field:value 2', $keyspace));
+      $this->assertTrue(in_array('rst:{map_tests}:map:map_field:value 1', $keyspace));
+      $this->assertFalse(in_array('rst:{map_tests}:map:map_field:value 2', $keyspace));
 
       // ---------------------------------------------------
       //  Removal
