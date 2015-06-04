@@ -109,7 +109,11 @@
      */
     public static function getServerInfo()
     {
-      return self::$connection->info();
+      if (self::$connection instanceof RedisCluster) {
+        return self::$connection->info(self::$connection->_masters()[0]);
+      } else {
+        return self::$connection->info();
+      }
     }
 
     /**
