@@ -66,24 +66,6 @@
       self::$namespace = trim($value);
     }
 
-//    /**
-//     * @param string     $namespace
-//     * @param integer    $select_database
-//     * @param array|null $connection_params
-//     * @param array|null $connection_options
-//     */
-//    public static function connect($namespace, $select_database = 0, $connection_params = null, $connection_options = null)
-//    {
-//      self::$connection = new Client($connection_params, $connection_options);
-//
-//      if ($select_database > 0) {
-//        self::$connection->select($select_database);
-//        self::$selected_database = $select_database;
-//      }
-//
-//      self::$namespace = $namespace;
-//    }
-
     /**
      * Return connection instance, in case we need it to directly work with the database
      *
@@ -211,6 +193,25 @@
       }
 
       return $result;
+    }
+
+    /**
+     * Mark all migrations as executed
+     *
+     * @param string $path
+     * @param string $namespace
+     */
+    public static function markAllMigrationsAsExecuted($path, $namespace = '')
+    {
+      $keys = [ self::getExecutedMigrationsSetKey() ];
+
+      foreach (self::discoverMigrations($path, $namespace) as $migration) {
+        $keys[] = get_class($migration);
+      }
+
+      if (count($keys) > 1) {
+        call_user_func_array([ self::$connection, 'sAdd' ], $keys);
+      }
     }
 
     /**

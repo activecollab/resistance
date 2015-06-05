@@ -65,6 +65,18 @@
     }
 
     /**
+     * Mark all migrations as executed
+     */
+    public function testMarkAllMigrationsAsExecuted()
+    {
+      Resistance::markAllMigrationsAsExecuted(__DIR__ . '/Migrations', 'ActiveCollab\Resistance\Test\Migrations');
+
+      foreach ($this->migrations as $migration) {
+        $this->assertTrue(Resistance::isMigrationExecuted($migration));
+      }
+    }
+
+    /**
      * Test if all transactions are marked as executed on migrate up
      *
      * @throws Resistance\Error\Error
