@@ -31,6 +31,8 @@
      */
     public function get($id, $check_for_existance = true)
     {
+      $id = (integer) $id; // Make sure that ID is int, because we will return it
+
       $key = $this->getKeyById($id);
 
       if ($check_for_existance && !$this->connection->exists($key)) {

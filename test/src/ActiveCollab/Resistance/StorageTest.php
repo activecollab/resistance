@@ -80,6 +80,25 @@
     }
 
     /**
+     * Test get existing record
+     */
+    public function testIdIsAlwaysInt()
+    {
+      $this->assertEquals(0, $this->accounts->count());
+
+      $id = $this->accounts->insert([
+        'license_key' => '123',
+        'subdomain' => 'afiveone',
+        'url' => 'https://www.activecollab.com',
+      ])[0];
+
+      $this->assertEquals(1, $id);
+      $this->assertEquals(1, $this->accounts->count());
+
+      $this->assertSame(1, $this->accounts->get('1')['_id']);
+    }
+
+    /**
      * @expectedException \ActiveCollab\Resistance\Error\Error
      */
     public function testGetNonExistingRecord()
