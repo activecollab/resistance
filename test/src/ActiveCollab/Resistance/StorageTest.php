@@ -105,7 +105,7 @@
       ], [
         'license_key' => '789',
         'subdomain' => 'supportyard',
-      'url' => 'https://www.activecollab.com',
+        'url' => 'https://www.activecollab.com',
       ]);
 
       $this->assertEquals(1, $id1);
@@ -138,6 +138,30 @@
       });
 
       $this->assertEquals(3, $callback_triggered);
+    }
+
+    /**
+     * Make sure that insert always returns integers
+     */
+    public function testInsertAlwaysReturnsId()
+    {
+      list ($id1, $id2, $id3) = $this->accounts->insert([
+        'license_key' => '123',
+        'subdomain' => 'afiveone',
+        'url' => 'https://www.activecollab.com',
+      ], [
+        'license_key' => '456',
+        'subdomain' => 'feather',
+        'url' => 'https://www.activecollab.com',
+      ], [
+        'license_key' => '789',
+        'subdomain' => 'supportyard',
+        'url' => 'https://www.activecollab.com',
+      ]);
+
+      $this->assertTrue(is_int($id1));
+      $this->assertTrue(is_int($id2));
+      $this->assertTrue(is_int($id3));
     }
 
     /**

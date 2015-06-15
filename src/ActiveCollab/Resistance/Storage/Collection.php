@@ -269,7 +269,7 @@
         return 1;
       }
 
-      return $next_id;
+      return (integer) $next_id;
     }
 
     /**
