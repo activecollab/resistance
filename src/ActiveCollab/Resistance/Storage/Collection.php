@@ -125,7 +125,7 @@
         if (!empty($this->unique_fields)) {
           foreach ($data as $field_name => $field_value) {
             if (in_array($field_name, $this->unique_fields) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
-              throw new Error("Value of '$field_name' needs to be unique");
+              throw new Error("Value '$field_value' of '$field_name' already used");
             }
           }
         }
@@ -180,7 +180,7 @@
         if (!empty($this->unique_fields)) {
           foreach ($data as $field_name => $field_value) {
             if (in_array($field_name, $this->unique_fields) && $field_value != $this->getFieldValue($id, $field_name) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
-              throw new Error("Value of '$field_name' needs to be unique");
+              throw new Error("Value '$field_value' of '$field_name' already used");
             }
           }
         }
