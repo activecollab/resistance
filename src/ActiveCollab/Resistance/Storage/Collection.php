@@ -256,7 +256,7 @@
           }
 
           foreach ($this->unique_fields as $field_name) {
-            $this->connection->srem($this->getUniquenessKeyByField($field_name), $this->getFieldValue($id, $field_name));
+            $this->connection->srem($this->getUniquenessKeyByField($field_name), $this->fields[$field_name]->castForUniqueCheck($this->getFieldValue($id, $field_name)));
           }
 
           /** @var Redis $t */

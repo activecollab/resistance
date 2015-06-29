@@ -215,4 +215,26 @@
         'url' => 'https://www.activecollab.com',
       ]);
     }
+
+    /**
+     * Test if unique value is released when item is removed (case insensitive)
+     */
+    public function testInsensitiveUniquenessReleaseOnRecordRemove()
+    {
+      $this->assertTrue($this->accounts->isUnique('subdomain'));
+
+      $id = $this->accounts->insert([
+        'license_key' => '123',
+        'subdomain' => 'aFiveOne',
+        'url' => 'https://www.activecollab.com',
+      ])[0];
+
+      $this->accounts->delete($id);
+
+      $this->accounts->insert([
+        'license_key' => '123',
+        'subdomain' => 'AFIVEONE',
+        'url' => 'https://www.activecollab.com',
+      ]);
+    }
   }
