@@ -124,7 +124,7 @@
 
         if (!empty($this->unique_fields)) {
           foreach ($data as $field_name => $field_value) {
-            if (in_array($field_name, $this->unique_fields) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
+            if (in_array($field_name, $this->unique_fields) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $this->fields[$field_name]->castForUniqueCheck($field_value))) {
               throw new Error("Value '$field_value' of '$field_name' already used");
             }
           }
@@ -140,7 +140,7 @@
           $t->incr($this->getCountKey());
 
           foreach ($this->unique_fields as $field_name) {
-            $t->sadd($this->getUniquenessKeyByField($field_name), $data[$field_name]);
+            $t->sadd($this->getUniquenessKeyByField($field_name), $this->fields[$field_name]->castForUniqueCheck($data[$field_name]));
           }
 
           foreach ($this->mapped_fields as $field_name) {
@@ -179,7 +179,7 @@
 
         if (!empty($this->unique_fields)) {
           foreach ($data as $field_name => $field_value) {
-            if (in_array($field_name, $this->unique_fields) && $field_value != $this->getFieldValue($id, $field_name) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $field_value)) {
+            if (in_array($field_name, $this->unique_fields) && $field_value != $this->getFieldValue($id, $field_name) && $this->connection->sismember($this->getUniquenessKeyByField($field_name), $this->fields[$field_name]->castForUniqueCheck($field_value))) {
               throw new Error("Value '$field_value' of '$field_name' already used");
             }
           }
@@ -203,16 +203,37 @@
           }
         }
 
-        $this->transaction(function ($t) use ($id, $key, $data) {
+        $unique_values_to_update = [];
+
+        foreach ($this->unique_fields as $field_name) {
+          if (array_key_exists($field_name, $data)) {
+            $unique_values_to_update[$field_name] = [
+              'replace' => $this->fields[$field_name]->castForUniqueCheck($this->getFieldValue($id, $field_name)), // Existing value
+              'with' => $this->fields[$field_name]->castForUniqueCheck($data[$field_name]) // New value
+            ];
+          }
+        }
+
+        $this->transaction(function ($t) use ($id, $key, $mapped_fields_to_update, $unique_values_to_update, $data) {
+
           /** @var Redis $t */
           foreach ($data as $k => $v) {
             $t->hset($key, $k, $v);
           }
-        });
 
-        foreach ($mapped_fields_to_update as $field_name) {
-          $this->connection->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), $id);
-        }
+          foreach ($mapped_fields_to_update as $field_name) {
+            $t->sadd($this->getMapKeyByFieldAndValue($field_name, $data[$field_name]), $id);
+          }
+
+          foreach ($unique_values_to_update as $field_name => $value_to_update) {
+            if ($value_to_update['replace'] !== $value_to_update['with']) {
+              $set = $this->getUniquenessKeyByField($field_name);
+
+              $t->srem($set, $value_to_update['replace']);
+              $t->sadd($set, $value_to_update['with']);
+            }
+          }
+        });
       } else {
         throw new Error("Data not found at key '$key'");
       }

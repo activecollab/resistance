@@ -60,6 +60,22 @@
     }
 
     /**
+     * @param  string $value
+     * @return string
+     * @throws Error
+     */
+    public function castForUniqueCheck($value)
+    {
+      $value_to_check = mb_strtolower(trim((string) $this->cast($value)));
+
+      if (mb_strlen($value_to_check) > 1024) {
+        throw new Error('Values longer than 1024 characters cannot be checked for uniqueness');
+      }
+
+      return $value_to_check;
+    }
+
+    /**
      * Indicator whether we have a custom default value
      *
      * @var bool
