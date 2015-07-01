@@ -41,7 +41,7 @@
       if ($format) {
         $this->setValidator('string_format', function ($field_name, $value) use ($format) {
           if (!$value || !preg_match($format, $value)) {
-            throw new ValidationError("Value of '$field_name' does not match '$format'");
+            throw new ValidationError("Value '$value' of '$field_name' does not match '$format'");
           }
         });
       } else {
@@ -60,7 +60,7 @@
     {
       $this->setValidator('string_is_url', function ($field_name, $value) {
         if (!$value || !filter_var($value, FILTER_VALIDATE_URL)) {
-          throw new ValidationError("Value of '$field_name' is not a valid URL");
+          throw new ValidationError("Value '$value' of '$field_name' is not a valid URL");
         }
       });
 
@@ -76,7 +76,7 @@
     {
       $this->setValidator('string_is_email', function ($field_name, $value) {
         if (!$value || !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-          throw new ValidationError("Value of '$field_name' is not a valid email address");
+          throw new ValidationError("Value '$value' of '$field_name' is not a valid email address");
         }
       });
 
